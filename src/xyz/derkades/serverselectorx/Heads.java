@@ -1,12 +1,5 @@
 package xyz.derkades.serverselectorx;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import org.bukkit.Bukkit;
-import org.bukkit.configuration.InvalidConfigurationException;
-import org.bukkit.plugin.java.JavaPlugin;
-import org.checkerframework.checker.nullness.qual.Nullable;
-
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.lang.reflect.Constructor;
@@ -18,6 +11,14 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
+
+import org.bukkit.Bukkit;
+import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.checkerframework.checker.nullness.qual.Nullable;
+
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 public class Heads {
 
@@ -46,6 +47,7 @@ public class Heads {
 
 		handlers.put("uuid", new UuidHandler(plugin));
 		handlers.put("texture", new TextureLiteralHandler());
+		handlers.put("url", new TextureURLHandler());
 	}
 
 	public CompletableFuture<@Nullable String> getHead(final String identifier) throws InvalidConfigurationException {
@@ -165,8 +167,27 @@ public class Heads {
 	private static class TextureLiteralHandler implements HeadHandler {
 
 		@Override
-		public CompletableFuture<@Nullable String> getHeadTexture(String name) {
-			return CompletableFuture.completedFuture(name);
+		public CompletableFuture<@Nullable String> getHeadTexture(String textureString) {
+			return CompletableFuture.completedFuture(textureString);
+		}
+
+	}
+
+	private static class TextureURLHandler implements HeadHandler {
+
+		@Override
+		public CompletableFuture<@Nullable String> getHeadTexture(String textureUrl) {
+			JsonObject skinTextureJson = new JsonObject();
+			
+			JsonObject textures = new JsonObject();
+			skinTextureJson.add("textures", textures);
+			
+			JsonObject skin = new JsonObject();
+			textures.add("SKIN", skin);
+		
+			skin.addProperty("url", textureUrl);
+			
+			return CompletableFuture.completedFuture(skinTextureJson.toString());
 		}
 
 	}
