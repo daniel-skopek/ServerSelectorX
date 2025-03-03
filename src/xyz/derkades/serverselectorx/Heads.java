@@ -51,13 +51,14 @@ public class Heads {
 	}
 
 	public CompletableFuture<@Nullable String> getHead(final String identifier) throws InvalidConfigurationException {
-		final String[] split = identifier.split(":");
-		if (split.length != 2) {
+		final int index = identifier.indexOf(":");
+		
+		if (index == -1) {
 			throw new InvalidConfigurationException("Invalid head '" + identifier + "'. Valid syntax is 'head:<type>:<value>' or 'head:self'.");
 		}
 
-		final String type = split[0];
-		final String value = split[1];
+		final String type = identifier.substring(0, index);
+		final String value = identifier.substring(index + 1);
 
 		if (!handlers.containsKey(type)) {
 			throw new InvalidConfigurationException("Invalid head type: " + type);
