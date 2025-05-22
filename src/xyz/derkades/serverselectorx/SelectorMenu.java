@@ -92,6 +92,10 @@ public class SelectorMenu extends IconMenu {
 				builder.unsafeEnchant(Enchantment.DURABILITY, 1);
 			}
 
+			if (section.isInt("model-data")) {
+				builder.modelData(section.getInt("model-data"));
+			}
+
 			final ItemStack item = builder.create();
 
 			final int slot = Integer.parseInt(key);
