@@ -5,7 +5,7 @@ import java.io.Reader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
-import java.net.URL;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -52,7 +52,7 @@ public class Heads {
 
 	public CompletableFuture<@Nullable String> getHead(final String identifier) throws InvalidConfigurationException {
 		final int index = identifier.indexOf(":");
-		
+
 		if (index == -1) {
 			throw new InvalidConfigurationException("Invalid head '" + identifier + "'. Valid syntax is 'head:<type>:<value>' or 'head:self'.");
 		}
@@ -149,8 +149,9 @@ public class Heads {
 			Bukkit.getScheduler().runTaskAsynchronously(this.plugin, () -> {
 				final UUID uuid = UUID.fromString(name);
 				Main.getPlugin().getLogger().info("Getting texture value for " + uuid + " from Mojang API");
+
 				try {
-					final HttpURLConnection connection = (HttpURLConnection) new URL("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid).openConnection();
+					final HttpURLConnection connection = (HttpURLConnection) URI.create("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid).toURL().openConnection();
 					try (final Reader reader = new InputStreamReader(connection.getInputStream())) {
 						final JsonObject jsonResponse = (JsonObject) JsonParser.parseReader(reader);
 						final String texture = jsonResponse.get("properties").getAsJsonArray().get(0).getAsJsonObject().get("value").getAsString();
@@ -179,15 +180,15 @@ public class Heads {
 		@Override
 		public CompletableFuture<@Nullable String> getHeadTexture(String textureUrl) {
 			JsonObject skinTextureJson = new JsonObject();
-			
+
 			JsonObject textures = new JsonObject();
 			skinTextureJson.add("textures", textures);
-			
+
 			JsonObject skin = new JsonObject();
 			textures.add("SKIN", skin);
-		
+
 			skin.addProperty("url", textureUrl);
-			
+
 			return CompletableFuture.completedFuture(skinTextureJson.toString());
 		}
 

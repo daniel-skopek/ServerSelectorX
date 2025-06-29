@@ -1,11 +1,5 @@
 package xyz.derkades.serverselectorx.configuration;
 
-import com.google.gson.JsonParser;
-import org.bukkit.Bukkit;
-import org.bukkit.configuration.file.FileConfiguration;
-import xyz.derkades.serverselectorx.Main;
-import xyz.derkades.serverselectorx.placeholders.Server;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -15,6 +9,7 @@ import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -23,6 +18,14 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
+
+import org.bukkit.Bukkit;
+import org.bukkit.configuration.file.FileConfiguration;
+
+import com.google.gson.JsonParser;
+
+import xyz.derkades.serverselectorx.Main;
+import xyz.derkades.serverselectorx.placeholders.Server;
 
 public class ConfigSync {
 
@@ -57,7 +60,7 @@ public class ConfigSync {
 
 	private boolean testConnectivity() {
 		try {
-			final HttpURLConnection conn = (HttpURLConnection) new URL(getBaseUrl("listfiles") + "?dir=.").openConnection();
+			final HttpURLConnection conn = (HttpURLConnection) URI.create(getBaseUrl("listfiles") + "?dir=.").toURL().openConnection();
 			conn.setConnectTimeout(1000);
 			conn.connect();
 			if (conn.getResponseCode() == 200) {
@@ -88,7 +91,7 @@ public class ConfigSync {
 			return;
 		}
 
-		final URL url = new URL(getBaseUrl("listfiles") + "?dir=" + encode(directory));
+		final URL url = URI.create(getBaseUrl("listfiles") + "?dir=" + encode(directory)).toURL();
 		final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
 		if (connection.getResponseCode() != 200) {
@@ -127,7 +130,7 @@ public class ConfigSync {
 	}
 
 	private InputStream getFileContent(final String file) throws IOException {
-		return new URL(getBaseUrl("getfile") + "?file=" + encode(file)).openConnection().getInputStream();
+		return URI.create(getBaseUrl("getfile") + "?file=" + encode(file)).toURL().openConnection().getInputStream();
 	}
 
 	public void sync() {
@@ -137,7 +140,7 @@ public class ConfigSync {
 
 		// Verify that the address is in the correct format
 		try {
-			new URL("http://" + configSync.getString("address"));
+			URI.create("http://" + configSync.getString("address")).toURL();
 		} catch (final MalformedURLException e) {
 			this.logger.severe("The address you entered seems to be incorrectly formatted.");
 			this.logger.severe("It must be formatted like this: 173.45.16.208:8888");
