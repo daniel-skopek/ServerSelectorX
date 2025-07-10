@@ -1,23 +1,24 @@
 package xyz.derkades.serverselectorx;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import org.bukkit.Bukkit;
-import org.bukkit.configuration.InvalidConfigurationException;
-import org.bukkit.plugin.java.JavaPlugin;
-import org.checkerframework.checker.nullness.qual.Nullable;
-
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
-import java.net.URL;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
+
+import org.bukkit.Bukkit;
+import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.checkerframework.checker.nullness.qual.Nullable;
+
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 public class Heads {
 
@@ -46,16 +47,18 @@ public class Heads {
 
 		handlers.put("uuid", new UuidHandler(plugin));
 		handlers.put("texture", new TextureLiteralHandler());
+		handlers.put("url", new TextureURLHandler());
 	}
 
 	public CompletableFuture<@Nullable String> getHead(final String identifier) throws InvalidConfigurationException {
-		final String[] split = identifier.split(":");
-		if (split.length != 2) {
+		final int index = identifier.indexOf(":");
+
+		if (index == -1) {
 			throw new InvalidConfigurationException("Invalid head '" + identifier + "'. Valid syntax is 'head:<type>:<value>' or 'head:self'.");
 		}
 
-		final String type = split[0];
-		final String value = split[1];
+		final String type = identifier.substring(0, index);
+		final String value = identifier.substring(index + 1);
 
 		if (!handlers.containsKey(type)) {
 			throw new InvalidConfigurationException("Invalid head type: " + type);
@@ -146,8 +149,9 @@ public class Heads {
 			Bukkit.getScheduler().runTaskAsynchronously(this.plugin, () -> {
 				final UUID uuid = UUID.fromString(name);
 				Main.getPlugin().getLogger().info("Getting texture value for " + uuid + " from Mojang API");
+
 				try {
-					final HttpURLConnection connection = (HttpURLConnection) new URL("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid).openConnection();
+					final HttpURLConnection connection = (HttpURLConnection) URI.create("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid).toURL().openConnection();
 					try (final Reader reader = new InputStreamReader(connection.getInputStream())) {
 						final JsonObject jsonResponse = (JsonObject) JsonParser.parseReader(reader);
 						final String texture = jsonResponse.get("properties").getAsJsonArray().get(0).getAsJsonObject().get("value").getAsString();
@@ -165,8 +169,27 @@ public class Heads {
 	private static class TextureLiteralHandler implements HeadHandler {
 
 		@Override
-		public CompletableFuture<@Nullable String> getHeadTexture(String name) {
-			return CompletableFuture.completedFuture(name);
+		public CompletableFuture<@Nullable String> getHeadTexture(String textureString) {
+			return CompletableFuture.completedFuture(textureString);
+		}
+
+	}
+
+	private static class TextureURLHandler implements HeadHandler {
+
+		@Override
+		public CompletableFuture<@Nullable String> getHeadTexture(String textureUrl) {
+			JsonObject skinTextureJson = new JsonObject();
+
+			JsonObject textures = new JsonObject();
+			skinTextureJson.add("textures", textures);
+
+			JsonObject skin = new JsonObject();
+			textures.add("SKIN", skin);
+
+			skin.addProperty("url", textureUrl);
+
+			return CompletableFuture.completedFuture(skinTextureJson.toString());
 		}
 
 	}
