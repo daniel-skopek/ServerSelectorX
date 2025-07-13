@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>xyz.derkades</groupId>
 	<artifactId>ServerSelectorX</artifactId>
-	<version>Premium-3.1.7-legacy</version>
+	<version>Premium-3.1.8-beta-legacy</version>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -154,7 +154,7 @@
 		<dependency>
 			<groupId>net.kyori</groupId>
 			<artifactId>adventure-text-minimessage</artifactId>
-			<version>4.22.0</version>
+			<version>4.23.0</version>
 		</dependency>
 
 		<dependency>
