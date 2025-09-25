@@ -123,7 +123,7 @@ public class ConditionalItem {
 
 			if (server != null && amountOnline) {
 				final int online = server.getOnlinePlayers();
-				amount = online >= 1 && online <= 64 ? online : 1;
+                amount = online >= 1 ? Math.min(online, 64) : 1;
 			}
 
 			final Function<String, String> stringConverter = string -> {
