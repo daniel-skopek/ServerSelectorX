@@ -1,11 +1,5 @@
 package xyz.derkades.serverselectorx;
 
-import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
-import xyz.derkades.derkutils.Cooldown;
-import xyz.derkades.serverselectorx.actions.Action;
-import xyz.derkades.serverselectorx.placeholders.Server;
-
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -15,36 +9,43 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+
+import xyz.derkades.derkutils.Cooldown;
+import xyz.derkades.serverselectorx.actions.Action;
+import xyz.derkades.serverselectorx.placeholders.Server;
+
 public class ServerSelectorX {
 
 	public static void registerAction(final @NotNull Action action) {
 		Action.ACTIONS.add(action);
 	}
-	
-	public static boolean runAction(@NotNull Player player, @NotNull String actionString) {
+
+	public static boolean runAction(@NotNull final Player player, @NotNull final String actionString) {
 		return Action.runAction(player, actionString);
 	}
-	
-	public static boolean runActions(@NotNull Player player, @NotNull List<String> actionStrings) {
+
+	public static boolean runActions(@NotNull final Player player, @NotNull final List<String> actionStrings) {
 		return Action.runActions(player, actionStrings);
 	}
-	
-	public static @NotNull Server getServer(@NotNull String name) {
-		return Server.getServer(name);
+
+	public static @NotNull Server getServer(@NotNull final String name) {
+		return Main.placeholderReceiver().getServer(name);
 	}
-	
+
 	public static @NotNull Collection<Server> getServers() {
-		return Collections.unmodifiableCollection(Server.getServers().values());
+		return Collections.unmodifiableCollection(Main.placeholderReceiver().getServers().values());
 	}
-	
+
 	public static @NotNull Set<Server> getOnlineServers() {
 		return Collections.unmodifiableSet(getServers().stream().filter(Server::isOnline).collect(Collectors.toSet()));
 	}
-	
+
 	public static int getGlobalPlayerCount() {
 		return getServers().stream().filter(Server::isOnline).mapToInt(Server::getOnlinePlayers).sum();
 	}
-	
+
 	public static void teleportPlayerToServer(final @NotNull Player player, final @NotNull String server){
 		if (Cooldown.getCooldown("servertp" + player.getName() + server) > 0) {
 			return;

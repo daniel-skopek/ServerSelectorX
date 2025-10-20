@@ -15,19 +15,15 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
 import de.tr7zw.changeme.nbtapi.utils.MinecraftVersion;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import xyz.derkades.derkutils.bukkit.NbtItemBuilder;
 import xyz.derkades.derkutils.bukkit.PlaceholderUtil;
-import xyz.derkades.serverselectorx.configuration.ConfigSync;
 import xyz.derkades.serverselectorx.configuration.ConfigurationManager;
 import xyz.derkades.serverselectorx.placeholders.PapiExpansionRegistrar;
-import xyz.derkades.serverselectorx.placeholders.Server;
+import xyz.derkades.serverselectorx.placeholders.PlaceholderReceiver;
 
 public class Main extends JavaPlugin {
 
@@ -41,20 +37,17 @@ public class Main extends JavaPlugin {
 	static boolean ITEM_DEBUG = false;
 
 	private static ConfigurationManager configurationManager;
-	private static ConfigSync configSync;
 
 	private static Main plugin;
 
 	private static BukkitAudiences adventure;
 
-	public static WebServer server;
-
-	public static final Gson GSON = new GsonBuilder().registerTypeAdapter(Server.class, Server.SERIALIZER).create();
-
 	private final HotbarItemManager hotbarItemManager = new HotbarItemManager(this);
 	public HotbarItemManager getHotbarItemManager() { return this.hotbarItemManager; }
 
 	private Heads heads;
+
+	private static PlaceholderReceiver placeholderReceiver;
 
 	@SuppressWarnings("null")
 	@NotNull
@@ -89,10 +82,6 @@ public class Main extends JavaPlugin {
 
 		adventure = BukkitAudiences.create(this);
 
-		server = new WebServer();
-		server.start();
-
-		configSync = new ConfigSync();
 		new Stats();
 		new ItemMoveDropCancelListener();
 		this.hotbarItemManager.enable();
@@ -103,6 +92,8 @@ public class Main extends JavaPlugin {
 		if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
 			PapiExpansionRegistrar.register();
 		}
+
+		placeholderReceiver = new PlaceholderReceiver("id", "password");
 	}
 
 	@Override
@@ -112,24 +103,22 @@ public class Main extends JavaPlugin {
 			adventure = null;
 		}
 
-		if (server != null) {
-			server.stop();
-		}
+		placeholderReceiver.close();
 	}
 
 	public static ConfigurationManager getConfigurationManager() {
 		return configurationManager;
 	}
 
-	static ConfigSync getConfigSync() {
-		return configSync;
-	}
-
 	public static BukkitAudiences adventure() {
 		return adventure;
 	}
 
-    public static void getItemBuilderFromMaterialString(final Player player, @Nullable String materialString, Consumer<NbtItemBuilder> builderConsumer) throws InvalidConfigurationException {
+	public static PlaceholderReceiver placeholderReceiver() {
+		return placeholderReceiver;
+	}
+
+    public static void getItemBuilderFromMaterialString(final Player player, @Nullable String materialString, final Consumer<NbtItemBuilder> builderConsumer) throws InvalidConfigurationException {
 		if (materialString == null || materialString.isEmpty()) {
 			return;
 		}
@@ -194,7 +183,7 @@ public class Main extends JavaPlugin {
 			.useUnusualXRepeatedCharacterHexFormat()
 			.build();
 
-	public static String miniMessageToLegacy(String miniMessage) {
+	public static String miniMessageToLegacy(final String miniMessage) {
 		return LEGACY_COMPONENT_SERIALIZER.serialize(MiniMessage.miniMessage().deserialize(miniMessage));
 	}
 

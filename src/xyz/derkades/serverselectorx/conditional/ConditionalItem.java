@@ -42,7 +42,7 @@ import xyz.derkades.serverselectorx.placeholders.Server;
 public class ConditionalItem {
 
 	@SuppressWarnings("unchecked")
-	private static Map<String, Object> matchSection(Player player, ConfigurationSection globalSection) throws InvalidConfigurationException {
+	private static Map<String, Object> matchSection(final Player player, final ConfigurationSection globalSection) throws InvalidConfigurationException {
 		if (!globalSection.contains("conditional")) {
 			return sectionToMap(globalSection);
 		}
@@ -78,7 +78,7 @@ public class ConditionalItem {
 
 
 
-	private static Map<String, Object> sectionToMap(ConfigurationSection section) {
+	private static Map<String, Object> sectionToMap(final ConfigurationSection section) {
 		final Map<String, Object> map = new HashMap<>();
 		for (final String key : section.getKeys(false)) {
 			map.put(key, section.get(key));
@@ -87,8 +87,8 @@ public class ConditionalItem {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static void getItem(@NotNull Player player, @NotNull ConfigurationSection section,
-							   @NotNull String cooldownId, @NotNull Consumer<@NotNull ItemStack> consumer)
+	public static void getItem(@NotNull final Player player, @NotNull final ConfigurationSection section,
+							   @NotNull final String cooldownId, @NotNull final Consumer<@NotNull ItemStack> consumer)
 			throws InvalidConfigurationException {
 
 		final Map<String, Object> matchedSection = matchSection(player, section);
@@ -119,7 +119,7 @@ public class ConditionalItem {
 			final @Nullable String color = (String) matchedSection.get("color");
 			final @Nullable Integer modelData = (Integer) matchedSection.getOrDefault("model-data", null);
 
-			final @Nullable Server server = serverName != null ? Server.getServer(serverName) : null;
+			final @Nullable Server server = serverName != null ? Main.placeholderReceiver().getServer(serverName) : null;
 
 			if (server != null && server.isOnline() && amountOnline) {
 				final int online = server.getOnlinePlayers();
@@ -173,7 +173,7 @@ public class ConditionalItem {
 					player.sendMessage("Invalid color '" + color + "', should be a # followed by 6 hex digits");
 					return;
 				}
-				
+
 				final int r = Integer.parseInt(color.substring(1, 3), 16);
 				final int g = Integer.parseInt(color.substring(3, 5), 16);
 				final int b = Integer.parseInt(color.substring(5, 7), 16);
@@ -206,20 +206,20 @@ public class ConditionalItem {
 		});
 	}
 
-	public static boolean runActions(OptionClickEvent event) {
+	public static boolean runActions(final OptionClickEvent event) {
 		final ClickType click = event.getClickType();
 		final boolean leftClick = click == ClickType.LEFT || click == ClickType.SHIFT_LEFT;
 		final boolean rightClick = click == ClickType.RIGHT || click == ClickType.SHIFT_RIGHT;
 		return runActions(event.getPlayer(), event.getItemStack(), leftClick, rightClick);
 	}
 
-	public static boolean runActions(PlayerInteractEvent event) {
+	public static boolean runActions(final PlayerInteractEvent event) {
 		final boolean leftClick = event.getAction() == LEFT_CLICK_AIR || event.getAction() == LEFT_CLICK_BLOCK;
 		final boolean rightClick = event.getAction() == RIGHT_CLICK_AIR || event.getAction() == RIGHT_CLICK_BLOCK;
 		return runActions(event.getPlayer(), event.getItem(), leftClick, rightClick);
 	}
 
-	private static boolean runActions(Player player, ItemStack item, boolean isLeftClick, boolean isRightClick) {
+	private static boolean runActions(final Player player, final ItemStack item, final boolean isLeftClick, final boolean isRightClick) {
 		if (item == null) {
 			Main.getPlugin().getLogger().warning("Received click event for null item. This is a bug.");
 			return false;

@@ -1,10 +1,11 @@
 package xyz.derkades.serverselectorx.placeholders;
 
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
-import org.jetbrains.annotations.NotNull;
 import xyz.derkades.serverselectorx.Main;
+import xyz.derkades.serverselectorx.ServerSelectorX;
 
 public class PapiExpansion extends PlaceholderExpansion {
 
@@ -12,7 +13,7 @@ public class PapiExpansion extends PlaceholderExpansion {
 	public String onPlaceholderRequest(final Player player, String identifier) {
 		if (identifier.startsWith("server_")) {
 			identifier = identifier.substring(7); // Remove 'server_'
-			StringBuilder serverName = new StringBuilder();
+			final StringBuilder serverName = new StringBuilder();
 			for (final char c : identifier.toCharArray()) {
 				if (c == '_') {
 					break;
@@ -23,7 +24,7 @@ public class PapiExpansion extends PlaceholderExpansion {
 			// Remove the server name and the underscore after it
 			final String placeholderName = identifier.substring(serverName.length() + 1);
 
-			final Server server = Server.getServer(serverName.toString());
+			final Server server = ServerSelectorX.getServer(serverName.toString());
 
 			if (placeholderName.equals("status")) {
 				return Main.getConfigurationManager().getMiscConfiguration().getString("placeholders.status-" + (server.isOnline() ? "online" : "offline"), (server.isOnline() ? "online" : "offline"));

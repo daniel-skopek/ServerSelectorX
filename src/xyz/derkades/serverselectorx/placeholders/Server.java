@@ -1,33 +1,15 @@
 package xyz.derkades.serverselectorx.placeholders;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonSerializer;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.entity.Player;
-import xyz.derkades.serverselectorx.Main;
-
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
+
+import xyz.derkades.serverselectorx.Main;
+
 public class Server {
-
-	private static final JsonObject EMPTY_OBJECT = new JsonObject();
-
-	public static final JsonSerializer<Server> SERIALIZER = (src, typeOfSrc, context) -> {
-		final JsonObject json = new JsonObject();
-		json.addProperty("name", src.getName());
-		json.addProperty("online", src.isOnline());
-		if (src.placeholders == null) {
-			json.add("placeholders", Server.EMPTY_OBJECT);
-		} else {
-			json.add("placeholders", Main.GSON.toJsonTree(src.placeholders));
-		}
-		return json;
-	};
-
-	private static final Map<String, Server> SERVERS = new HashMap<>();
 
 	private final String name;
 	private transient long lastInfoTime = 0;
@@ -47,7 +29,7 @@ public class Server {
 
 	public boolean isOnline() {
 		final int timeout = Main.getConfigurationManager().getApiConfiguration().getInt("server-offline-timeout", 6000);
-		return getTimeSinceLastMessage() < timeout;
+		return this.getTimeSinceLastMessage() < timeout;
 	}
 
 	public Collection<Placeholder> getPlaceholders() {
@@ -69,16 +51,16 @@ public class Server {
 			return this.placeholders.get(name);
 		}
 
-		Main.getPlugin().getLogger().warning("Placeholder " + name + " was requested but not received from the server (" + getName() + ").");
+		Main.getPlugin().getLogger().warning("Placeholder " + name + " was requested but not received from the server (" + this.getName() + ").");
 		return new GlobalPlaceholder(name, configMisc.getString("placeholders.missing", "?"));
 	}
 
 	public int getOnlinePlayers() {
-		return hasPlaceholder("online") ? Integer.parseInt(((GlobalPlaceholder) getPlaceholder("online")).getValue()) : 0;
+		return this.hasPlaceholder("online") ? Integer.parseInt(((GlobalPlaceholder) this.getPlaceholder("online")).getValue()) : 0;
 	}
 
 	public int getMaximumPlayers() {
-		return hasPlaceholder("max") ? Integer.parseInt(((GlobalPlaceholder) getPlaceholder("max")).getValue()) : 0;
+		return this.hasPlaceholder("max") ? Integer.parseInt(((GlobalPlaceholder) this.getPlaceholder("max")).getValue()) : 0;
 	}
 
 	public void updatePlaceholders(final Map<String, Placeholder> placeholders) {
@@ -103,26 +85,6 @@ public class Server {
 			string = string.replace("{" + placeholder.getKey() + "}", value);
 		}
 		return string;
-	}
-
-	public static Map<String, Server> getServers() {
-		return SERVERS;
-	}
-
-	public static Server getServer(final String name) {
-		Objects.requireNonNull(name, "Server name is null");
-
-		if (SERVERS.containsKey(name)) {
-			return SERVERS.get(name);
-		} else {
-			final Server server = new Server(name);
-			SERVERS.put(name, server);
-			return server;
-		}
-	}
-
-	public static void clear() {
-		SERVERS.clear();
 	}
 
 }
