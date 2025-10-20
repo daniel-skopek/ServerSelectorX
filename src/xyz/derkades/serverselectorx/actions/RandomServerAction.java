@@ -22,7 +22,7 @@ public class RandomServerAction extends Action {
 		Collections.shuffle(serverNames);
 
 		for (final String serverName : serverNames) {
-			final Server server = Server.getServer(serverName);
+			final Server server = ServerSelectorX.getServer(serverName);
 			if (!server.isOnline()) {
 				continue;
 			}

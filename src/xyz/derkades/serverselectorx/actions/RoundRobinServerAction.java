@@ -25,7 +25,7 @@ public class RoundRobinServerAction extends Action {
 
 		if (!LAST_USED_SERVER.containsKey(value)) {
 			// This action has never been used before, use first server
-			teleportIfPossible(player, serverNames[0], value);
+			this.teleportIfPossible(player, serverNames[0], value);
 			LAST_USED_SERVER.put(value, 0);
 		} else {
 			int index = LAST_USED_SERVER.get(value) + 1;
@@ -34,7 +34,7 @@ public class RoundRobinServerAction extends Action {
 				index = 0; // Start from the beginning!
 			}
 
-			teleportIfPossible(player, serverNames[index], value);
+			this.teleportIfPossible(player, serverNames[index], value);
 			LAST_USED_SERVER.put(value, index);
 		}
 
@@ -54,13 +54,13 @@ public class RoundRobinServerAction extends Action {
 			ATTEMPTS.put(value, 1);
 		}
 
-		final Server server = Server.getServer(serverName);
+		final Server server = ServerSelectorX.getServer(serverName);
 		if (!server.isOnline()) {
-			apply(player, value);
+			this.apply(player, value);
 		}
 
 		if (server.getOnlinePlayers() >= server.getMaximumPlayers()) {
-			apply(player, value);
+			this.apply(player, value);
 		}
 
 		ServerSelectorX.teleportPlayerToServer(player, serverName);

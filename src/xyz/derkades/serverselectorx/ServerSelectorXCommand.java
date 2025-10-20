@@ -1,6 +1,8 @@
 package xyz.derkades.serverselectorx;
 
-import net.md_5.bungee.api.ChatColor;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -8,13 +10,12 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+
+import net.md_5.bungee.api.ChatColor;
 import xyz.derkades.serverselectorx.placeholders.GlobalPlaceholder;
 import xyz.derkades.serverselectorx.placeholders.Placeholder;
 import xyz.derkades.serverselectorx.placeholders.PlayerPlaceholder;
 import xyz.derkades.serverselectorx.placeholders.Server;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class ServerSelectorXCommand implements CommandExecutor {
 
@@ -51,7 +52,7 @@ public class ServerSelectorXCommand implements CommandExecutor {
 				case "placeholders":
 					final String serverName = args[1];
 
-					final Server server = Server.getServer(serverName);
+					final Server server = Main.placeholderReceiver().getServer(serverName);
 
 					if (!server.isOnline()) {
 						sender.sendMessage("The server '" + serverName + "' does not exist or is currently offline");
@@ -71,7 +72,7 @@ public class ServerSelectorXCommand implements CommandExecutor {
 					}
 					return true;
 				case "updateitems":
-					Player player = Bukkit.getPlayerExact(args[1]);
+					final Player player = Bukkit.getPlayerExact(args[1]);
 					if (player == null) {
 						sender.sendMessage("No player found with the provided name");
 						return true;
@@ -96,11 +97,8 @@ public class ServerSelectorXCommand implements CommandExecutor {
 						return true;
 					}
 
-					Main.server.stop();
-					Main.server.start();
-
 					// Clear server status cache to remove any old server names
-					Server.clear();
+					Main.placeholderReceiver().clearServers();
 
 					Main.getPlugin().getHotbarItemManager().updateSsxItems();
 
@@ -118,7 +116,7 @@ public class ServerSelectorXCommand implements CommandExecutor {
 					sender.sendMessage("Using port " + configApi.getInt("port"));
 					sender.sendMessage("Listening on " + configApi.getString("host", "127.0.0.1 (no host specified in config)"));
 
-					if (Server.getServers().isEmpty()) {
+					if (Main.placeholderReceiver().getServers().isEmpty()) {
 						sender.sendMessage("No data has been received from servers.");
 						return true;
 					}
@@ -148,14 +146,6 @@ public class ServerSelectorXCommand implements CommandExecutor {
 				case "itemdebug":
 					Main.ITEM_DEBUG = true;
 					sender.sendMessage("Debug messages related to item giving and clicking are now enabled until the next server restart/reload.");
-					return true;
-				case "sync":
-					sender.sendMessage("Synchronising configuration files.. For more information have a look at the console.");
-					Bukkit.getScheduler().runTaskAsynchronously(Main.getPlugin(), () -> Main.getConfigSync().sync());
-					return true;
-				case "synclist":
-					Bukkit.getScheduler().runTaskAsynchronously(Main.getPlugin(), () ->
-							Main.getConfigSync().getFilesToSync().forEach(sender::sendMessage));
 					return true;
 				case "updateitems":
 					Main.getPlugin().getHotbarItemManager().updateSsxItems();

@@ -1,12 +1,13 @@
 package xyz.derkades.serverselectorx.actions;
 
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
-import xyz.derkades.serverselectorx.Main;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+
+import xyz.derkades.serverselectorx.Main;
 
 public abstract class Action {
 
@@ -21,7 +22,6 @@ public abstract class Action {
 			new MessageAction(),
 			new OpenMenuAction(),
 			new PlayerCommandAction(),
-			new PostJoinCommandAction(),
 			new RandomServerAction(),
 			new RoundRobinServerAction(),
 			new ServerAction(),

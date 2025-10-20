@@ -1,14 +1,16 @@
 package xyz.derkades.serverselectorx.conditional.condition;
 
+import java.util.Map;
+
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.entity.Player;
+
 import xyz.derkades.serverselectorx.Main;
+import xyz.derkades.serverselectorx.ServerSelectorX;
 import xyz.derkades.serverselectorx.placeholders.GlobalPlaceholder;
 import xyz.derkades.serverselectorx.placeholders.Placeholder;
 import xyz.derkades.serverselectorx.placeholders.PlayerPlaceholder;
 import xyz.derkades.serverselectorx.placeholders.Server;
-
-import java.util.Map;
 
 public class ServerPlaceholderCondition extends Condition {
 
@@ -17,7 +19,7 @@ public class ServerPlaceholderCondition extends Condition {
 	}
 
 	@Override
-	public boolean isTrue(Player player, Map<String, Object> options) throws InvalidConfigurationException {
+	public boolean isTrue(final Player player, final Map<String, Object> options) throws InvalidConfigurationException {
 		if (!options.containsKey("server-name")) {
 			throw new InvalidConfigurationException("Missing requried option: 'server-name'");
 		}
@@ -34,17 +36,17 @@ public class ServerPlaceholderCondition extends Condition {
 			throw new InvalidConfigurationException("Invalid type for placeholder-value option. It has to be a string, but it is: " + options.get("placeholder-value").getClass().getSimpleName());
 		}
 
-		String placeholderName = (String) options.get("placeholder-name");
-		String expectedPlaceholderValue = (String) options.get("placeholder-value");
+		final String placeholderName = (String) options.get("placeholder-name");
+		final String expectedPlaceholderValue = (String) options.get("placeholder-value");
 
 		if (placeholderName.contains("%")) {
 			throw new InvalidConfigurationException("Placeholder name must not contain percentage symbols");
 		}
 
-		String serverName = (String) options.get("server-name");
-		Server server = Server.getServer(serverName);
+		final String serverName = (String) options.get("server-name");
+		final Server server = ServerSelectorX.getServer(serverName);
 		if (server.isOnline()) {
-			Placeholder placeholder = server.getPlaceholder(placeholderName);
+			final Placeholder placeholder = server.getPlaceholder(placeholderName);
 			String actualPlaceholderValue;
 			if (placeholder instanceof GlobalPlaceholder) {
 				actualPlaceholderValue = ((GlobalPlaceholder) placeholder).getValue();
@@ -56,7 +58,7 @@ public class ServerPlaceholderCondition extends Condition {
 
 			actualPlaceholderValue = server.parsePlaceholders(player, actualPlaceholderValue);
 
-			String comparisonMode = (String) options.getOrDefault("placeholder-comparison", "equals");
+			final String comparisonMode = (String) options.getOrDefault("placeholder-comparison", "equals");
 
 			return comparisonMode.equals("equals") && expectedPlaceholderValue.equals(actualPlaceholderValue) ||
 					comparisonMode.equals("less") && Double.parseDouble(expectedPlaceholderValue) > Double.parseDouble(actualPlaceholderValue) ||

@@ -16,7 +16,7 @@ public class FirstAvailableServerAction extends Action {
 		final String[] serverNames = value.split(":");
 
 		for (final String serverName : serverNames) {
-			final Server server = Server.getServer(serverName);
+			final Server server = ServerSelectorX.getServer(serverName);
 
 			if (!server.isOnline()) {
 				continue;
