@@ -55,7 +55,7 @@ public class RoundRobinServerAction extends Action {
 		}
 
 		final Server server = ServerSelectorX.getServer(serverName);
-		if (!server.isOnline()) {
+		if (server == null) {
 			this.apply(player, value);
 		}
 

@@ -23,7 +23,7 @@ public class RandomServerAction extends Action {
 
 		for (final String serverName : serverNames) {
 			final Server server = ServerSelectorX.getServer(serverName);
-			if (!server.isOnline()) {
+			if (server == null) {
 				continue;
 			}
 

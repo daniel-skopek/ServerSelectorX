@@ -12,24 +12,15 @@ import xyz.derkades.serverselectorx.Main;
 public class Server {
 
 	private final String name;
-	private transient long lastInfoTime = 0;
-	private Map<String, Placeholder> placeholders;
+	private final Map<String, Placeholder> placeholders;
 
-	public Server(final String name) {
-		this.name = Objects.requireNonNull(name, "Server name is null");
+	public Server(final String name, final Map<String, Placeholder> placeholders) {
+		this.name = Objects.requireNonNull(name);
+		this.placeholders = placeholders;
 	}
 
 	public String getName() {
 		return this.name;
-	}
-
-	public long getTimeSinceLastMessage() {
-		return System.currentTimeMillis() - this.lastInfoTime;
-	}
-
-	public boolean isOnline() {
-		final int timeout = Main.getConfigurationManager().getApiConfiguration().getInt("server-offline-timeout", 6000);
-		return this.getTimeSinceLastMessage() < timeout;
 	}
 
 	public Collection<Placeholder> getPlaceholders() {
@@ -42,10 +33,6 @@ public class Server {
 
 	public Placeholder getPlaceholder(final String name) {
 		final FileConfiguration configMisc = Main.getConfigurationManager().getMiscConfiguration();
-
-		if (!this.isOnline()) {
-			return new GlobalPlaceholder(name, configMisc.getString("placeholders.offline", "-"));
-		}
 
 		if (this.hasPlaceholder(name)) {
 			return this.placeholders.get(name);
@@ -61,11 +48,6 @@ public class Server {
 
 	public int getMaximumPlayers() {
 		return this.hasPlaceholder("max") ? Integer.parseInt(((GlobalPlaceholder) this.getPlaceholder("max")).getValue()) : 0;
-	}
-
-	public void updatePlaceholders(final Map<String, Placeholder> placeholders) {
-		this.placeholders = placeholders;
-		this.lastInfoTime = System.currentTimeMillis();
 	}
 
 	public String parsePlaceholders(final Player player, String string) {

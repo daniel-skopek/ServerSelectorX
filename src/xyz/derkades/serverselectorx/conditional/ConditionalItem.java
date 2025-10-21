@@ -121,7 +121,7 @@ public class ConditionalItem {
 
 			final @Nullable Server server = serverName != null ? Main.placeholderReceiver().getServer(serverName) : null;
 
-			if (server != null && server.isOnline() && amountOnline) {
+			if (server != null && amountOnline) {
 				final int online = server.getOnlinePlayers();
 				amount = online >= 1 && online <= 64 ? online : 1;
 			}

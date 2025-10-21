@@ -93,7 +93,8 @@ public class Main extends JavaPlugin {
 			PapiExpansionRegistrar.register();
 		}
 
-		placeholderReceiver = new PlaceholderReceiver("id", "password");
+		placeholderReceiver = new PlaceholderReceiver();
+		placeholderReceiver.loadConfiguration();
 	}
 
 	@Override
@@ -102,8 +103,6 @@ public class Main extends JavaPlugin {
 			adventure.close();
 			adventure = null;
 		}
-
-		placeholderReceiver.close();
 	}
 
 	public static ConfigurationManager getConfigurationManager() {
