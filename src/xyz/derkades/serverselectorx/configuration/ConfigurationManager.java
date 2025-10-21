@@ -1,18 +1,19 @@
 package xyz.derkades.serverselectorx.configuration;
 
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import xyz.derkades.derkutils.FileUtils;
-import xyz.derkades.serverselectorx.Main;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import xyz.derkades.derkutils.FileUtils;
+import xyz.derkades.serverselectorx.Main;
 
 /**
  * Manages configuration files
@@ -23,11 +24,10 @@ public class ConfigurationManager {
 
 	private enum StandardConfigFile {
 
-		API(new File(CONFIG_DIR, "api.yml")),
+		SERVER(new File(CONFIG_DIR, "server.yml")),
 		INVENTORY(new File(CONFIG_DIR, "inventory.yml")),
 		JOIN(new File(CONFIG_DIR, "join.yml")),
-		MISC(new File(CONFIG_DIR, "misc.yml")),
-		SYNC(new File(CONFIG_DIR, "sync.yml"));
+		MISC(new File(CONFIG_DIR, "misc.yml"));
 
 		private final @NotNull File file;
 
@@ -68,7 +68,7 @@ public class ConfigurationManager {
 
 			for (final File file : files) {
 				if (file.isDirectory()) {
-					loadDirectory(prefix + file.getName() + "/", file, dest);
+					this.loadDirectory(prefix + file.getName() + "/", file, dest);
 				} else if (file.getName().endsWith(".yml") || file.getName().endsWith(".yaml")) {
 					dest.put(prefix + configName(file), YamlConfiguration.loadConfiguration(file));
 				}
@@ -82,7 +82,7 @@ public class ConfigurationManager {
 						new File(this.dir, this.defaultFileOutsideJar));
 			}
 
-			loadDirectory("", this.dir, dest);
+			this.loadDirectory("", this.dir, dest);
 		}
 
 		private static String configName(final File file) {
@@ -158,9 +158,9 @@ public class ConfigurationManager {
 		}
 	}
 
-	public @NotNull FileConfiguration getApiConfiguration() {
+	public @NotNull FileConfiguration getServerConfiguration() {
 		synchronized(this.STANDARD_FILES) {
-			return this.STANDARD_FILES.get(StandardConfigFile.API);
+			return this.STANDARD_FILES.get(StandardConfigFile.SERVER);
 		}
 	}
 
@@ -181,12 +181,5 @@ public class ConfigurationManager {
 			return this.STANDARD_FILES.get(StandardConfigFile.MISC);
 		}
 	}
-
-	public @NotNull FileConfiguration getSyncConfiguration() {
-		synchronized(this.STANDARD_FILES) {
-			return this.STANDARD_FILES.get(StandardConfigFile.SYNC);
-		}
-	}
-
 
 }

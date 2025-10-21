@@ -6,7 +6,6 @@ import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.entity.Player;
 
 import xyz.derkades.serverselectorx.ServerSelectorX;
-import xyz.derkades.serverselectorx.placeholders.Server;
 
 public class ServerOnlineCondition extends Condition {
 
@@ -21,8 +20,7 @@ public class ServerOnlineCondition extends Condition {
 		}
 
 		final String serverName = (String) options.get("server-name");
-		final Server server = ServerSelectorX.getServer(serverName);
-
-		return server.isOnline();
+		return ServerSelectorX.getServer(serverName) != null;
 	}
+
 }

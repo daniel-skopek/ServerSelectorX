@@ -1,125 +1,132 @@
 package xyz.derkades.serverselectorx.placeholders;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URI;
+import java.net.URLConnection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.logging.Level;
 
-import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
-import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
-import org.eclipse.paho.client.mqttv3.MqttCallback;
-import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
-import org.eclipse.paho.client.mqttv3.MqttException;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
-import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
+import org.bukkit.Bukkit;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import xyz.derkades.serverselectorx.Main;
 
-public class PlaceholderReceiver implements MqttCallback {
+public class PlaceholderReceiver {
 
-    private static final String TOPIC_PREFIX = "ssx1";
+    private Map<String, Server> servers = Collections.emptyMap();
 
-    private final Map<String, Server> servers = new HashMap<>();
-    private final MqttAsyncClient mqttClient;
-    private final String id;
-    private final String password;
+    private List<String> placeholderServers;
+    private String networkId;
+    private final String lobbyId;
 
-    public PlaceholderReceiver(final String id, final String password) {
-        this.id = id;
-        this.password = password;
-        try {
-            this.mqttClient = new MqttAsyncClient("tcp://10.0.1.1", UUID.randomUUID().toString(),
-                    new MemoryPersistence());
-            this.mqttClient.subscribe(TOPIC_PREFIX + "/" + id + "/placeholders", 0);
-            this.mqttClient.setCallback(this);
-        } catch (final MqttException e) {
-            throw new RuntimeException("MQTT failed to setup");
-        }
+    public PlaceholderReceiver() {
+        Bukkit.getScheduler().runTaskTimerAsynchronously(Main.getPlugin(), this::updatePlaceholders, 0, 5*20);
+        this.lobbyId = UUID.randomUUID().toString();
 
-        // TODO periodically send list of players to /players topic
     }
 
-    public void connect() {
-        try {
-            final MqttConnectOptions options = new MqttConnectOptions();
-            options.setAutomaticReconnect(true);
-            options.setCleanSession(true);
-            options.setConnectionTimeout(5);
-            this.mqttClient.connect(options);
-        } catch (final MqttException e) {
-            Main.getPlugin().getLogger().log(Level.WARNING, "MQTT failed to connect", e);
-        }
+    public void loadConfiguration() {
+        final FileConfiguration config = Main.getConfigurationManager().getServerConfiguration();
+        this.placeholderServers = config.getStringList("placeholder-servers");
+        this.networkId = config.getString("network-id");
     }
 
-    public void close() {
-        try {
-            this.mqttClient.close();
-        } catch (final MqttException e) {
-            Main.getPlugin().getLogger().log(Level.WARNING, "MQTT failed to close", e);
-        }
-    }
-
-    @Override
-    public void connectionLost(final Throwable cause) {
-        Main.getPlugin().getLogger().warning("Connection lost to MQTT server: " + cause.getMessage());
-    }
-
-    @Override
-    public void messageArrived(final String topic, final MqttMessage message) throws Exception {
-        final byte[] data = message.getPayload();
-        final JsonObject root = JsonParser.parseString(data.toString()).getAsJsonObject();
-
-        final String serverName = root.get("server").getAsString();
-        final Server server = this.getServer(serverName);
-
-        final Map<String, Placeholder> parsedPlaceholders = new HashMap<>();
-
-        // Global placeholders
-        for (final JsonElement elem : root.get("global").getAsJsonArray()) {
-            final JsonObject obj = elem.getAsJsonObject();
-            final String key = obj.get("key").getAsString();
-            final String value = obj.get("val").getAsString();
-            parsedPlaceholders.put(key, new GlobalPlaceholder(key, value));
+    public void updatePlaceholders() {
+        if (this.placeholderServers.size() == 0 || this.networkId == null) {
+            return;
         }
 
-        // Player placeholders
-        for (final JsonElement elem : root.get("players").getAsJsonArray()) {
-            final JsonObject obj = elem.getAsJsonObject();
-            final String key = obj.get("key").getAsString();
-            final JsonObject values = root.get("val").getAsJsonObject();
-            final Map<UUID, String> parsedValues = new HashMap<>();
-            for (final String uuid : values.keySet()) {
-                parsedValues.put(UUID.fromString(uuid), values.get(uuid).getAsString());
+        // Update placeholders from first server that works
+        for (final String placeholderServer : this.placeholderServers) {
+            try {
+                this.updatePlaceholdersFrom(placeholderServer);
+                break;
+            } catch (final Exception e) {
+                e.printStackTrace();
             }
-            parsedPlaceholders.put(key, new PlayerPlaceholder(key, parsedValues));
         }
-
-        server.updatePlaceholders(null);
     }
 
-    @Override
-    public void deliveryComplete(final IMqttDeliveryToken token) {
+    public void updatePlaceholdersFrom(final String placeholderServer) throws IOException {
+        final JsonArray jsonPlayersArray = new JsonArray(Bukkit.getOnlinePlayers().size());
+        for (final Player player : Bukkit.getOnlinePlayers()) {
+            jsonPlayersArray.add(player.getUniqueId().toString());
+        }
+
+        final JsonObject requestJson = new JsonObject();
+        requestJson.add("players", jsonPlayersArray);
+        requestJson.addProperty("network", this.networkId);
+        requestJson.addProperty("lobby", this.lobbyId);
+
+        final URLConnection connection = URI.create(placeholderServer + "/lobby").toURL().openConnection();
+        connection.setDoOutput(true);
+        try (OutputStream out = connection.getOutputStream()) {
+            final byte[] data = requestJson.toString().getBytes();
+            out.write(data);
+        }
+
+        try (InputStream in = connection.getInputStream()) {
+            final byte[] data = in.readAllBytes();
+            final JsonObject repsonseJson = JsonParser.parseString(new String(data)).getAsJsonObject();
+            this.servers = parseResponse(repsonseJson);
+        }
     }
 
     public Map<String, Server> getServers() {
         return this.servers;
     }
 
-    public Server getServer(final String name) {
-        Server server = this.servers.get(name);
-        if (server == null) {
-            server = new Server(name);
-            this.servers.put(name, server);
-        }
-        return server;
+    public @Nullable Server getServer(final String name) {
+        return this.servers.get(name);
     }
 
-    public void clearServers() {
-        this.servers.clear();
+    private static Map<String, Server> parseResponse(final JsonObject response) {
+        final JsonObject serversObject = response.get("servers").getAsJsonObject();
+
+        final Map<String, Server> newServers = new HashMap<>();
+
+        for (final Map.Entry<String, JsonElement> entry : serversObject.entrySet()) {
+            final String serverName = entry.getKey();
+            final JsonObject serverData = entry.getValue().getAsJsonObject();
+
+            final Map<String, Placeholder> parsedPlaceholders = new HashMap<>();
+
+            // Global placeholders
+            for (final JsonElement elem : serverData.get("global").getAsJsonArray()) {
+                final JsonObject obj = elem.getAsJsonObject();
+                final String key = obj.get("key").getAsString();
+                final String value = obj.get("val").getAsString();
+                parsedPlaceholders.put(key, new GlobalPlaceholder(key, value));
+            }
+
+            // Player placeholders
+            for (final JsonElement elem : serverData.get("players").getAsJsonArray()) {
+                final JsonObject obj = elem.getAsJsonObject();
+                final String key = obj.get("key").getAsString();
+                final JsonObject values = obj.get("val").getAsJsonObject();
+                final Map<UUID, String> parsedValues = new HashMap<>();
+                for (final String uuid : values.keySet()) {
+                    parsedValues.put(UUID.fromString(uuid), values.get(uuid).getAsString());
+                }
+                parsedPlaceholders.put(key, new PlayerPlaceholder(key, parsedValues));
+            }
+
+            newServers.put(serverName, new Server(serverName, parsedPlaceholders));
+        }
+
+        return newServers;
     }
 
 }

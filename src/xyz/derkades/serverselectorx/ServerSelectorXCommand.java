@@ -54,7 +54,7 @@ public class ServerSelectorXCommand implements CommandExecutor {
 
 					final Server server = Main.placeholderReceiver().getServer(serverName);
 
-					if (!server.isOnline()) {
+					if (server == null) {
 						sender.sendMessage("The server '" + serverName + "' does not exist or is currently offline");
 						return true;
 					}
@@ -97,9 +97,7 @@ public class ServerSelectorXCommand implements CommandExecutor {
 						return true;
 					}
 
-					// Clear server status cache to remove any old server names
-					Main.placeholderReceiver().clearServers();
-
+					Main.placeholderReceiver().loadConfiguration();
 					Main.getPlugin().getHotbarItemManager().updateSsxItems();
 
 					sender.sendMessage("Run " + ChatColor.GRAY + "/ssx reloadcommands" + ChatColor.RESET + " to reload commands.");
@@ -111,27 +109,15 @@ public class ServerSelectorXCommand implements CommandExecutor {
 					sender.sendMessage("Commands are not unregistered, if you disabled or renamed a command the old command will still work until the server is restarted.");
 					return true;
 				case "status":
-					final FileConfiguration configApi = Main.getConfigurationManager().getApiConfiguration();
-
-					sender.sendMessage("Using port " + configApi.getInt("port"));
-					sender.sendMessage("Listening on " + configApi.getString("host", "127.0.0.1 (no host specified in config)"));
-
 					if (Main.placeholderReceiver().getServers().isEmpty()) {
 						sender.sendMessage("No data has been received from servers.");
 						return true;
 					}
 
 					for (final Server server : ServerSelectorX.getServers()) {
-						final long ms = server.getTimeSinceLastMessage();
-						final String lastInfo = ms < 999999 ? server.getTimeSinceLastMessage() + "ms" : "∞ ms";
-						if (server.isOnline()) {
-							final List<String> placeholderKeys = server.getPlaceholders().stream()
-									.map(Placeholder::getKey).collect(Collectors.toList());
-							sender.sendMessage(server.getName() + ": " + ChatColor.GREEN + "ONLINE (" + lastInfo + ") " + ChatColor.WHITE +
-									": " + ChatColor.GRAY + placeholderKeys.stream().map(s -> "{" + s + "}").collect(Collectors.joining(", ")));
-						} else {
-							sender.sendMessage(server.getName() + ": " + ChatColor.RED + "OFFLINE (" + lastInfo + ")");
-						}
+						final List<String> placeholderKeys = server.getPlaceholders().stream()
+								.map(Placeholder::getKey).collect(Collectors.toList());
+						sender.sendMessage(server.getName() + ": " + ChatColor.GRAY + String.join(", ", placeholderKeys));
 					}
 					return true;
 				case "items":

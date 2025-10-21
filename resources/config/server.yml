@@ -1,0 +1,11 @@
+# Set to a random string to identify your server network. It must be set to
+# the same value on all your servers. You must use a secure random value,
+# or an attacker can change server placeholders for your network.
+# Example: x0b7b2qeml6cZjXRJgDevmc5hNV (generate your own!)
+network-id: null
+
+# List of servers to use for exchanging server information. By default,
+# public servers are used. If you wish, you can host your own. The first
+# working server in this list is used.
+placeholder-servers:
+  - http://localhost:8080

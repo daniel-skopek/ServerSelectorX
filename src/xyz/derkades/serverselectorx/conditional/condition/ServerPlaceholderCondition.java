@@ -45,29 +45,30 @@ public class ServerPlaceholderCondition extends Condition {
 
 		final String serverName = (String) options.get("server-name");
 		final Server server = ServerSelectorX.getServer(serverName);
-		if (server.isOnline()) {
-			final Placeholder placeholder = server.getPlaceholder(placeholderName);
-			String actualPlaceholderValue;
-			if (placeholder instanceof GlobalPlaceholder) {
-				actualPlaceholderValue = ((GlobalPlaceholder) placeholder).getValue();
-			} else if (placeholder instanceof PlayerPlaceholder) {
-				actualPlaceholderValue = ((PlayerPlaceholder) placeholder).getValue(player);
-			} else {
-				throw new IllegalStateException();
-			}
 
-			actualPlaceholderValue = server.parsePlaceholders(player, actualPlaceholderValue);
-
-			final String comparisonMode = (String) options.getOrDefault("placeholder-comparison", "equals");
-
-			return comparisonMode.equals("equals") && expectedPlaceholderValue.equals(actualPlaceholderValue) ||
-					comparisonMode.equals("less") && Double.parseDouble(expectedPlaceholderValue) > Double.parseDouble(actualPlaceholderValue) ||
-					comparisonMode.equals("more") && Double.parseDouble(expectedPlaceholderValue) < Double.parseDouble(actualPlaceholderValue);
-		} else {
-			Main.getPlugin().getLogger().info(String.format(
+		if (server == null) {
+			Main.getPlugin().getLogger().warning(String.format(
 					"Cannot obtain placeholder %s for server %s, the server is offline. Consider adding condition checking if the server is online.",
 					placeholderName, serverName));
 			return false;
 		}
+
+		final Placeholder placeholder = server.getPlaceholder(placeholderName);
+		String actualPlaceholderValue;
+		if (placeholder instanceof GlobalPlaceholder) {
+			actualPlaceholderValue = ((GlobalPlaceholder) placeholder).getValue();
+		} else if (placeholder instanceof PlayerPlaceholder) {
+			actualPlaceholderValue = ((PlayerPlaceholder) placeholder).getValue(player);
+		} else {
+			throw new IllegalStateException();
+		}
+
+		actualPlaceholderValue = server.parsePlaceholders(player, actualPlaceholderValue);
+
+		final String comparisonMode = (String) options.getOrDefault("placeholder-comparison", "equals");
+
+		return comparisonMode.equals("equals") && expectedPlaceholderValue.equals(actualPlaceholderValue) ||
+				comparisonMode.equals("less") && Double.parseDouble(expectedPlaceholderValue) > Double.parseDouble(actualPlaceholderValue) ||
+				comparisonMode.equals("more") && Double.parseDouble(expectedPlaceholderValue) < Double.parseDouble(actualPlaceholderValue);
 	}
 }

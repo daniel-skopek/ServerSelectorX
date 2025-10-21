@@ -27,14 +27,17 @@ public class PapiExpansion extends PlaceholderExpansion {
 			final Server server = ServerSelectorX.getServer(serverName.toString());
 
 			if (placeholderName.equals("status")) {
-				return Main.getConfigurationManager().getMiscConfiguration().getString("placeholders.status-" + (server.isOnline() ? "online" : "offline"), (server.isOnline() ? "online" : "offline"));
-			} else {
+				final String status = server != null ? "online" : "offline";
+				return Main.getConfigurationManager().getMiscConfiguration().getString("placeholders.status-" + status, status);
+			} else if (server != null) {
 				final Placeholder placeholder = server.getPlaceholder(placeholderName);
 				if (placeholder instanceof PlayerPlaceholder) {
 					return ((PlayerPlaceholder) placeholder).getValue(player);
 				} else {
 					return ((GlobalPlaceholder) placeholder).getValue();
 				}
+			} else {
+				return "";
 			}
 		}
 
