@@ -8,4 +8,5 @@ network-id: null
 # public servers are used. If you wish, you can host your own. The first
 # working server in this list is used.
 placeholder-servers:
-  - http://localhost:8080
+  - https://ssx1.rslot.nl
+  - https://ssx2.kwiknet.nl
