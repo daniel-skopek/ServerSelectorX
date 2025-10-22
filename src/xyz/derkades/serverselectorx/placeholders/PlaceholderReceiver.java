@@ -27,7 +27,7 @@ public class PlaceholderReceiver {
 
     private Map<String, Server> servers = Collections.emptyMap();
     private String status;
-
+    private long lastSuccess = 0;
     private List<String> placeholderServers;
     private String networkId;
     private final String lobbyId;
@@ -58,6 +58,7 @@ public class PlaceholderReceiver {
         for (final String placeholderServer : this.placeholderServers) {
             try {
                 this.updatePlaceholdersFrom(placeholderServer);
+                this.lastSuccess = System.currentTimeMillis();
                 newStatus += ChatColor.GRAY + placeholderServer + ChatColor.GREEN + " WORKING" + ChatColor.RESET + "\n";
                 break;
             } catch (final Exception e) {
@@ -65,6 +66,12 @@ public class PlaceholderReceiver {
             }
         }
         this.status = newStatus;
+
+        // Clear server list if we have not been able to connect for a long time
+        // Then it is better to show servers as offline instead of with incorrect info
+        if (System.currentTimeMillis() - this.lastSuccess > 300_000) {
+            this.servers = Collections.emptyMap();
+        }
     }
 
     public void updatePlaceholdersFrom(final String placeholderServer) throws IOException {
