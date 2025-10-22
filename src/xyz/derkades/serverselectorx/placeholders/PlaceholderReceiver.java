@@ -2,7 +2,9 @@ package xyz.derkades.serverselectorx.placeholders;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.Reader;
 import java.net.URI;
 import java.net.URLConnection;
 import java.util.Collections;
@@ -20,6 +22,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 
 import xyz.derkades.serverselectorx.Main;
 
@@ -70,7 +73,7 @@ public class PlaceholderReceiver {
     public void updatePlaceholdersFrom(final String placeholderServer) throws IOException {
         final JsonArray jsonPlayersArray = new JsonArray();
         for (final Player player : Bukkit.getOnlinePlayers()) {
-            jsonPlayersArray.add(player.getUniqueId().toString());
+            jsonPlayersArray.add(new JsonPrimitive(player.getUniqueId().toString()));
         }
 
         final JsonObject requestJson = new JsonObject();
@@ -85,9 +88,9 @@ public class PlaceholderReceiver {
             out.write(data);
         }
 
-        try (InputStream in = connection.getInputStream()) {
-            final byte[] data = in.readAllBytes();
-            final JsonObject repsonseJson = Main.JSON_PARSER.parse(new String(data)).getAsJsonObject();
+        try (InputStream in = connection.getInputStream();
+                Reader reader = new InputStreamReader(in)) {
+            final JsonObject repsonseJson = Main.JSON_PARSER.parse(reader).getAsJsonObject();
             this.servers = parseResponse(repsonseJson);
         }
     }
