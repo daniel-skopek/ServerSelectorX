@@ -66,6 +66,10 @@
 							<pattern>xyz.derkades.derkutils</pattern>
 							<shadedPattern>xyz.derkades.serverselectorx.lib.derkutils</shadedPattern>
 						</relocation>
+						<relocation>
+							<pattern>org.checkerframework</pattern>
+							<shadedPattern>xyz.derkades.serverselectorx.lib.checkerframework</shadedPattern>
+						</relocation>
 					</relocations>
 
 					<filters>
