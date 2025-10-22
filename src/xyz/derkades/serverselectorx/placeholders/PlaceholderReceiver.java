@@ -19,7 +19,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
 import xyz.derkades.serverselectorx.Main;
 
@@ -60,7 +59,7 @@ public class PlaceholderReceiver {
     }
 
     public void updatePlaceholdersFrom(final String placeholderServer) throws IOException {
-        final JsonArray jsonPlayersArray = new JsonArray(Bukkit.getOnlinePlayers().size());
+        final JsonArray jsonPlayersArray = new JsonArray();
         for (final Player player : Bukkit.getOnlinePlayers()) {
             jsonPlayersArray.add(player.getUniqueId().toString());
         }
@@ -79,7 +78,7 @@ public class PlaceholderReceiver {
 
         try (InputStream in = connection.getInputStream()) {
             final byte[] data = in.readAllBytes();
-            final JsonObject repsonseJson = JsonParser.parseString(new String(data)).getAsJsonObject();
+            final JsonObject repsonseJson = Main.JSON_PARSER.parse(new String(data)).getAsJsonObject();
             this.servers = parseResponse(repsonseJson);
         }
     }
@@ -111,8 +110,8 @@ public class PlaceholderReceiver {
                     // player-specific placeholder
                     final JsonObject values = placeholderEntry.getValue().getAsJsonObject();
                     final Map<UUID, String> parsedValues = new HashMap<>();
-                    for (final String uuid : values.keySet()) {
-                        parsedValues.put(UUID.fromString(uuid), values.get(uuid).getAsString());
+                    for (final Map.Entry<String, JsonElement> valueEntry : values.entrySet()) {
+                        parsedValues.put(UUID.fromString(valueEntry.getKey()), valueEntry.getValue().getAsString());
                     }
                     parsedPlaceholders.put(key, new PlayerPlaceholder(key, parsedValues));
                 } else if (placeholderEntry.getValue().isJsonPrimitive()) {
