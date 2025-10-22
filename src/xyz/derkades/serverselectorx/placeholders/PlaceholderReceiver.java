@@ -99,28 +99,27 @@ public class PlaceholderReceiver {
 
         for (final Map.Entry<String, JsonElement> entry : serversObject.entrySet()) {
             final String serverName = entry.getKey();
-            final JsonObject serverData = entry.getValue().getAsJsonObject();
+            final JsonObject serverObject = entry.getValue().getAsJsonObject();
+            final JsonObject placeholdersObject = serverObject.get("placeholders").getAsJsonObject();
 
             final Map<String, Placeholder> parsedPlaceholders = new HashMap<>();
 
-            // Global placeholders
-            for (final JsonElement elem : serverData.get("global").getAsJsonArray()) {
-                final JsonObject obj = elem.getAsJsonObject();
-                final String key = obj.get("key").getAsString();
-                final String value = obj.get("val").getAsString();
-                parsedPlaceholders.put(key, new GlobalPlaceholder(key, value));
-            }
+            for (final Map.Entry<String, JsonElement> placeholderEntry : placeholdersObject.entrySet()) {
+                final String key = placeholderEntry.getKey();
 
-            // Player placeholders
-            for (final JsonElement elem : serverData.get("players").getAsJsonArray()) {
-                final JsonObject obj = elem.getAsJsonObject();
-                final String key = obj.get("key").getAsString();
-                final JsonObject values = obj.get("val").getAsJsonObject();
-                final Map<UUID, String> parsedValues = new HashMap<>();
-                for (final String uuid : values.keySet()) {
-                    parsedValues.put(UUID.fromString(uuid), values.get(uuid).getAsString());
+                if (placeholderEntry.getValue().isJsonObject()) {
+                    // player-specific placeholder
+                    final JsonObject values = placeholderEntry.getValue().getAsJsonObject();
+                    final Map<UUID, String> parsedValues = new HashMap<>();
+                    for (final String uuid : values.keySet()) {
+                        parsedValues.put(UUID.fromString(uuid), values.get(uuid).getAsString());
+                    }
+                    parsedPlaceholders.put(key, new PlayerPlaceholder(key, parsedValues));
+                } else if (placeholderEntry.getValue().isJsonPrimitive()) {
+                    // global placeholder
+                    final String value = placeholderEntry.getValue().getAsString();
+                    parsedPlaceholders.put(key, new GlobalPlaceholder(key, value));
                 }
-                parsedPlaceholders.put(key, new PlayerPlaceholder(key, parsedValues));
             }
 
             newServers.put(serverName, new Server(serverName, parsedPlaceholders));
