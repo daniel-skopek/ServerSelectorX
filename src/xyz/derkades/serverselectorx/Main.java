@@ -15,6 +15,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.google.gson.JsonParser;
+
 import de.tr7zw.changeme.nbtapi.utils.MinecraftVersion;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -31,6 +33,8 @@ public class Main extends JavaPlugin {
 		// Disable NBT API update checker
 		MinecraftVersion.disableUpdateCheck();
 	}
+
+	public static final JsonParser JSON_PARSER = new JsonParser();
 
 	// When set to true, debug information related to giving items on join is printed to the
 	// console. This boolean is enabled using /ssx lagdebug

@@ -18,36 +18,35 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
 public class Heads {
 
 	private final Map<String, HeadHandler> handlers = new HashMap<>();
 
-	Heads(JavaPlugin plugin) {
-		Logger logger = plugin.getLogger();
+	Heads(final JavaPlugin plugin) {
+		final Logger logger = plugin.getLogger();
 
 		try {
-			handlers.put("arc-hdb", new ArcaniaxHandler());
+			this.handlers.put("arc-hdb", new ArcaniaxHandler());
 			logger.info("Integration with Arcaniax's Head Database plugin is active");
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			if (Main.getConfigurationManager().getMiscConfiguration().getBoolean("head-api-debug")) {
 				e.printStackTrace();
 			}
 		}
 
 		try {
-			handlers.put("silent-hdb", new SilentHandler());
+			this.handlers.put("silent-hdb", new SilentHandler());
 			logger.info("Integration with TheSilentPro's Head Database plugin is active");
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			if (Main.getConfigurationManager().getMiscConfiguration().getBoolean("head-api-debug")) {
 				e.printStackTrace();
 			}
 		}
 
-		handlers.put("uuid", new UuidHandler(plugin));
-		handlers.put("texture", new TextureLiteralHandler());
-		handlers.put("url", new TextureURLHandler());
+		this.handlers.put("uuid", new UuidHandler(plugin));
+		this.handlers.put("texture", new TextureLiteralHandler());
+		this.handlers.put("url", new TextureURLHandler());
 	}
 
 	public CompletableFuture<@Nullable String> getHead(final String identifier) throws InvalidConfigurationException {
@@ -60,11 +59,11 @@ public class Heads {
 		final String type = identifier.substring(0, index);
 		final String value = identifier.substring(index + 1);
 
-		if (!handlers.containsKey(type)) {
+		if (!this.handlers.containsKey(type)) {
 			throw new InvalidConfigurationException("Invalid head type: " + type);
 		}
 
-		return handlers.get(type).getHeadTexture(value);
+		return this.handlers.get(type).getHeadTexture(value);
 	}
 
 	private interface HeadHandler {
@@ -79,22 +78,22 @@ public class Heads {
 		private final Method getBase64Method;
 
 		private ArcaniaxHandler() throws Exception {
-			Class<?> apiClass = Class.forName("me.arcaniax.hdb.api.HeadDatabaseAPI");
+			final Class<?> apiClass = Class.forName("me.arcaniax.hdb.api.HeadDatabaseAPI");
 			final Constructor<?> constructor = apiClass.getConstructor();
 			this.apiInstance = constructor.newInstance();
 			this.getBase64Method = apiClass.getMethod("getBase64", String.class);
 		}
 
 		@Override
-		public CompletableFuture<@Nullable String> getHeadTexture(String name) {
+		public CompletableFuture<@Nullable String> getHeadTexture(final String name) {
 			final CompletableFuture<String> future = new CompletableFuture<>();
 			try {
-				final String value = (String) getBase64Method.invoke(apiInstance, name);
+				final String value = (String) this.getBase64Method.invoke(this.apiInstance, name);
 				if (value == null) {
 					Main.getPlugin().getLogger().warning("Head is not in head database: " + name);
 				}
 				future.complete(value);
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				future.completeExceptionally(e);
 			}
 			return future;
@@ -108,18 +107,18 @@ public class Heads {
 		private final Method getValueMethod;
 
 		private SilentHandler() throws Exception {
-			Class<?> apiClass = Class.forName("tsp.headdb.api.HeadAPI");
+			final Class<?> apiClass = Class.forName("tsp.headdb.api.HeadAPI");
 			this.getHeadByIdMethod = apiClass.getMethod("getHeadByID");
-			Class<?> headClass = Class.forName("tsp.headdb.implementation.Head");
+			final Class<?> headClass = Class.forName("tsp.headdb.implementation.Head");
 			this.getValueMethod = headClass.getMethod("getValue");
 		}
 
 		@Override
-		public CompletableFuture<@Nullable String> getHeadTexture(String name) {
+		public CompletableFuture<@Nullable String> getHeadTexture(final String name) {
 			final CompletableFuture<String> future = new CompletableFuture<>();
 			try {
-				Object headInstance = getHeadByIdMethod.invoke(null);
-				final String texture = (String) getValueMethod.invoke(headInstance);
+				final Object headInstance = this.getHeadByIdMethod.invoke(null);
+				final String texture = (String) this.getValueMethod.invoke(headInstance);
 				future.complete(texture);
 			} catch (final Exception e) {
 				future.completeExceptionally(e);
@@ -134,13 +133,13 @@ public class Heads {
 		private final JavaPlugin plugin;
 		private final Map<String, String> cachedTextures = new HashMap<>();
 
-		private UuidHandler(JavaPlugin plugin) {
+		private UuidHandler(final JavaPlugin plugin) {
 			this.plugin = plugin;
 		}
 
 		@Override
-		public CompletableFuture<@Nullable String> getHeadTexture(String name) {
-			final String cachedTexture = cachedTextures.get(name);
+		public CompletableFuture<@Nullable String> getHeadTexture(final String name) {
+			final String cachedTexture = this.cachedTextures.get(name);
 			if (cachedTexture != null) {
 				return CompletableFuture.completedFuture(cachedTexture);
 			}
@@ -153,9 +152,9 @@ public class Heads {
 				try {
 					final HttpURLConnection connection = (HttpURLConnection) URI.create("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid).toURL().openConnection();
 					try (final Reader reader = new InputStreamReader(connection.getInputStream())) {
-						final JsonObject jsonResponse = (JsonObject) JsonParser.parseReader(reader);
+						final JsonObject jsonResponse = Main.JSON_PARSER.parse(reader).getAsJsonObject();
 						final String texture = jsonResponse.get("properties").getAsJsonArray().get(0).getAsJsonObject().get("value").getAsString();
-						cachedTextures.put(name, texture);
+						this.cachedTextures.put(name, texture);
 						future.complete(texture);
 					}
 				} catch (final Exception e) {
@@ -169,7 +168,7 @@ public class Heads {
 	private static class TextureLiteralHandler implements HeadHandler {
 
 		@Override
-		public CompletableFuture<@Nullable String> getHeadTexture(String textureString) {
+		public CompletableFuture<@Nullable String> getHeadTexture(final String textureString) {
 			return CompletableFuture.completedFuture(textureString);
 		}
 
@@ -178,13 +177,13 @@ public class Heads {
 	private static class TextureURLHandler implements HeadHandler {
 
 		@Override
-		public CompletableFuture<@Nullable String> getHeadTexture(String textureUrl) {
-			JsonObject skinTextureJson = new JsonObject();
+		public CompletableFuture<@Nullable String> getHeadTexture(final String textureUrl) {
+			final JsonObject skinTextureJson = new JsonObject();
 
-			JsonObject textures = new JsonObject();
+			final JsonObject textures = new JsonObject();
 			skinTextureJson.add("textures", textures);
 
-			JsonObject skin = new JsonObject();
+			final JsonObject skin = new JsonObject();
 			textures.add("SKIN", skin);
 
 			skin.addProperty("url", textureUrl);

@@ -51,14 +51,6 @@
 							<shadedPattern>xyz.derkades.serverselectorx.lib.nbtapi</shadedPattern>
 						</relocation>
 						<relocation>
-							<pattern>com.google.gson</pattern>
-							<shadedPattern>xyz.derkades.serverselectorx.lib.gson</shadedPattern>
-						</relocation>
-						<relocation>
-							<pattern>org.glassfish.grizzly</pattern>
-							<shadedPattern>xyz.derkades.serverselectorx.lib.grizzly</shadedPattern>
-						</relocation>
-						<relocation>
 							<pattern>org.intellij.lang.annotations</pattern>
 							<shadedPattern>xyz.derkades.serverselectorx.lib.intellij-annotations</shadedPattern>
 						</relocation>
@@ -125,12 +117,6 @@
 			<artifactId>placeholderapi</artifactId>
 			<version>2.11.6</version>
 			<scope>provided</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>com.google.code.gson</groupId>
-			<artifactId>gson</artifactId>
-			<version>2.13.2</version>
 		</dependency>
 
 		<dependency>
