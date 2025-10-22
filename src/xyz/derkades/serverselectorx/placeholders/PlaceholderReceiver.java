@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -25,6 +26,7 @@ import xyz.derkades.serverselectorx.Main;
 public class PlaceholderReceiver {
 
     private Map<String, Server> servers = Collections.emptyMap();
+    private String status;
 
     private List<String> placeholderServers;
     private String networkId;
@@ -34,6 +36,10 @@ public class PlaceholderReceiver {
         Bukkit.getScheduler().runTaskTimerAsynchronously(Main.getPlugin(), this::updatePlaceholders, 0, 5*20);
         this.lobbyId = UUID.randomUUID().toString();
 
+    }
+
+    public String getStatus() {
+        return this.status;
     }
 
     public void loadConfiguration() {
@@ -48,14 +54,17 @@ public class PlaceholderReceiver {
         }
 
         // Update placeholders from first server that works
+        String newStatus = "";
         for (final String placeholderServer : this.placeholderServers) {
             try {
                 this.updatePlaceholdersFrom(placeholderServer);
+                newStatus += ChatColor.GRAY + placeholderServer + ChatColor.GREEN + " WORKING" + ChatColor.RESET + "\n";
                 break;
             } catch (final Exception e) {
-                e.printStackTrace();
+                newStatus += ChatColor.GRAY + placeholderServer + ChatColor.RED + " ERROR: " + e.getMessage() + ChatColor.RESET + "\n";
             }
         }
+        this.status = newStatus;
     }
 
     public void updatePlaceholdersFrom(final String placeholderServer) throws IOException {

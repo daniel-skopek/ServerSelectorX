@@ -109,11 +109,9 @@ public class ServerSelectorXCommand implements CommandExecutor {
 					sender.sendMessage("Commands are not unregistered, if you disabled or renamed a command the old command will still work until the server is restarted.");
 					return true;
 				case "status":
-					if (Main.placeholderReceiver().getServers().isEmpty()) {
-						sender.sendMessage("No data has been received from servers.");
-						return true;
-					}
+					sender.sendMessage(Main.placeholderReceiver().getStatus());
 
+					sender.sendMessage("Servers:");
 					for (final Server server : ServerSelectorX.getServers()) {
 						final List<String> placeholderKeys = server.getPlaceholders().stream()
 								.map(Placeholder::getKey).collect(Collectors.toList());
