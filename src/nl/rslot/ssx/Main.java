@@ -1,0 +1,193 @@
+package nl.rslot.ssx;
+
+import java.io.IOException;
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
+
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Material;
+import org.bukkit.command.PluginCommand;
+import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import com.google.gson.JsonParser;
+
+import de.tr7zw.changeme.nbtapi.utils.MinecraftVersion;
+import net.kyori.adventure.platform.bukkit.BukkitAudiences;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import nl.rslot.ssx.configuration.ConfigurationManager;
+import nl.rslot.ssx.placeholders.PapiExpansionRegistrar;
+import nl.rslot.ssx.placeholders.PlaceholderReceiver;
+import xyz.derkades.derkutils.bukkit.NbtItemBuilder;
+import xyz.derkades.derkutils.bukkit.PlaceholderUtil;
+
+public class Main extends JavaPlugin {
+
+	static {
+		// Disable NBT API update checker
+		MinecraftVersion.disableUpdateCheck();
+	}
+
+	public static final JsonParser JSON_PARSER = new JsonParser();
+
+	// When set to true, debug information related to giving items on join is printed to the
+	// console. This boolean is enabled using /ssx lagdebug
+	static boolean ITEM_DEBUG = false;
+
+	private static ConfigurationManager configurationManager;
+
+	private static Main plugin;
+
+	private static BukkitAudiences adventure;
+
+	private final HotbarItemManager hotbarItemManager = new HotbarItemManager(this);
+	public HotbarItemManager getHotbarItemManager() { return this.hotbarItemManager; }
+
+	private Heads heads;
+
+	private static PlaceholderReceiver placeholderReceiver;
+
+	@SuppressWarnings("null")
+	@NotNull
+	public static Main getPlugin(){
+		return plugin;
+	}
+
+	@Override
+	public void onEnable() {
+		plugin = this;
+
+		MinecraftVersion.replaceLogger(this.getLogger());
+
+		configurationManager = new ConfigurationManager();
+		try {
+			configurationManager.reload();
+		} catch (final IOException e) {
+			throw new RuntimeException(e);
+		}
+
+		this.heads = new Heads(this);
+
+		this.getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
+
+		final PluginCommand command = Objects.requireNonNull(this.getCommand("serverselectorx"),
+				"Command missing from plugin.yml");
+		command.setExecutor(new ServerSelectorXCommand());
+		command.setTabCompleter(new ServerSelectorXCommandCompleter());
+
+		// Register custom selector commands
+		Commands.registerCustomCommands();
+
+		adventure = BukkitAudiences.create(this);
+
+		new Stats();
+		new ItemMoveDropCancelListener();
+		this.hotbarItemManager.enable();
+
+		Bukkit.getPluginManager().registerEvents(new ItemClickListener(), this);
+		Bukkit.getPluginManager().registerEvents(new ActionsOnJoinListener(), this);
+
+		if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
+			PapiExpansionRegistrar.register();
+		}
+
+		placeholderReceiver = new PlaceholderReceiver();
+		placeholderReceiver.loadConfiguration();
+	}
+
+	@Override
+	public void onDisable() {
+		if (adventure != null) {
+			adventure.close();
+			adventure = null;
+		}
+	}
+
+	public static ConfigurationManager getConfigurationManager() {
+		return configurationManager;
+	}
+
+	public static BukkitAudiences adventure() {
+		return adventure;
+	}
+
+	public static PlaceholderReceiver placeholderReceiver() {
+		return placeholderReceiver;
+	}
+
+    public static void getItemBuilderFromMaterialString(final Player player, @Nullable String materialString, final Consumer<NbtItemBuilder> builderConsumer) throws InvalidConfigurationException {
+		if (materialString == null || materialString.isEmpty()) {
+			return;
+		}
+
+		if (materialString.charAt(0) == '!') {
+			materialString = PlaceholderUtil.parsePapiPlaceholders(player, materialString.substring(1));
+		}
+
+		if (materialString.startsWith("head:")) {
+			String headValue = materialString.substring(5);
+			if (headValue.equals("self") || headValue.equals("auto")) {
+				if (getConfigurationManager().getMiscConfiguration().getBoolean("mojang-api-head-auto", false)) {
+					headValue = "uuid:" + player.getUniqueId();
+				} else {
+					// Bypass head system, just return player's own head. No need to get a texture, because the server caches it for online players
+					builderConsumer.accept(new NbtItemBuilder(Material.PLAYER_HEAD).skullOwner(player));
+					return;
+				}
+			}
+
+			final CompletableFuture<@Nullable String> headTextureFuture = plugin.heads.getHead(headValue);
+
+			Futures.whenCompleteOnMainThread(plugin, headTextureFuture, (headTexture, exception) -> {
+				if (exception != null) {
+					exception.printStackTrace();
+					return;
+				}
+
+				if (headTexture != null) {
+					builderConsumer.accept(new NbtItemBuilder(Material.PLAYER_HEAD).skullTexture(headTexture));
+				} else {
+					builderConsumer.accept(new NbtItemBuilder(Material.PLAYER_HEAD));
+				}
+			});
+			return;
+		}
+
+		final String[] materialsToTry = materialString.split("\\|");
+		Material material = null;
+		for (final String materialString2 : materialsToTry) {
+			try {
+				material = Material.valueOf(materialString2);
+				break;
+			} catch (final IllegalArgumentException ignored) {
+			}
+		}
+
+		if (material == null) {
+			player.sendMessage("Invalid item name '" + materialString + "'");
+			player.sendMessage("https://github.com/ServerSelectorX/ServerSelectorX/wiki/Item-names");
+			return;
+		}
+
+		if (material != Material.AIR) {
+			builderConsumer.accept(new NbtItemBuilder(material));
+		}
+	}
+
+	private static final LegacyComponentSerializer LEGACY_COMPONENT_SERIALIZER = LegacyComponentSerializer.builder()
+			.character(ChatColor.COLOR_CHAR)
+			.hexColors()
+			.useUnusualXRepeatedCharacterHexFormat()
+			.build();
+
+	public static String miniMessageToLegacy(final String miniMessage) {
+		return LEGACY_COMPONENT_SERIALIZER.serialize(MiniMessage.miniMessage().deserialize(miniMessage));
+	}
+
+}

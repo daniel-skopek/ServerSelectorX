@@ -1,5 +1,5 @@
 name: ServerSelectorX
-main: xyz.derkades.serverselectorx.Main
+main: nl.rslot.ssx.Main
 version: '@project.version@'
 author: Derkades
 description: 'An up-to-date customizable server selector plugin.'

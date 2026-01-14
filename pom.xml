@@ -2,7 +2,7 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>xyz.derkades</groupId>
+	<groupId>nl.rslot</groupId>
 	<artifactId>ServerSelectorX</artifactId>
 	<version>Premium-4.0.0-beta</version>
 
@@ -44,31 +44,31 @@
 					<relocations>
 						<relocation>
 							<pattern>org.bstats</pattern>
-							<shadedPattern>xyz.derkades.serverselectorx.lib.bstats</shadedPattern>
+							<shadedPattern>nl.rslot.ssx.lib.bstats</shadedPattern>
 						</relocation>
 						<relocation>
 							<pattern>de.tr7zw.changeme.nbtapi</pattern>
-							<shadedPattern>xyz.derkades.serverselectorx.lib.nbtapi</shadedPattern>
+							<shadedPattern>nl.rslot.ssx.lib.nbtapi</shadedPattern>
 						</relocation>
 						<relocation>
 							<pattern>org.intellij.lang.annotations</pattern>
-							<shadedPattern>xyz.derkades.serverselectorx.lib.intellij-annotations</shadedPattern>
+							<shadedPattern>nl.rslot.ssx.lib.intellij-annotations</shadedPattern>
 						</relocation>
 						<relocation>
 							<pattern>org.jetbrains.annotations</pattern>
-							<shadedPattern>xyz.derkades.serverselectorx.lib.jetbrains-annotations</shadedPattern>
+							<shadedPattern>nl.rslot.ssx.lib.jetbrains-annotations</shadedPattern>
 						</relocation>
 						<relocation>
 							<pattern>net.kyori</pattern>
-							<shadedPattern>xyz.derkades.serverselectorx.lib.kyori</shadedPattern>
+							<shadedPattern>nl.rslot.ssx.lib.kyori</shadedPattern>
 						</relocation>
 						<relocation>
 							<pattern>xyz.derkades.derkutils</pattern>
-							<shadedPattern>xyz.derkades.serverselectorx.lib.derkutils</shadedPattern>
+							<shadedPattern>nl.rslot.ssx.lib.derkutils</shadedPattern>
 						</relocation>
 						<relocation>
 							<pattern>org.checkerframework</pattern>
-							<shadedPattern>xyz.derkades.serverselectorx.lib.checkerframework</shadedPattern>
+							<shadedPattern>nl.rslot.ssx.lib.checkerframework</shadedPattern>
 						</relocation>
 					</relocations>
 

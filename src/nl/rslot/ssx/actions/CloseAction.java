@@ -1,0 +1,16 @@
+package nl.rslot.ssx.actions;
+
+import org.bukkit.entity.Player;
+
+public class CloseAction extends Action {
+
+	public CloseAction() {
+		super("close", false);
+	}
+
+	@Override
+	public boolean apply(final Player player, final String value) {
+		return true; // true == close menu
+	}
+
+}
