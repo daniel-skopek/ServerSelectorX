@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>nl.rslot</groupId>
 	<artifactId>ServerSelectorX</artifactId>
-	<version>Premium-4.0.0-beta</version>
+	<version>Premium-4.0.0</version>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
