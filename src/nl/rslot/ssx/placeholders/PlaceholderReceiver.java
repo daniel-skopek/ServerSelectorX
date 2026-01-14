@@ -62,7 +62,7 @@ public class PlaceholderReceiver {
                 newStatus += ChatColor.GRAY + placeholderServer + ChatColor.GREEN + " WORKING" + ChatColor.RESET + "\n";
                 break;
             } catch (final Exception e) {
-                newStatus += ChatColor.GRAY + placeholderServer + ChatColor.RED + " ERROR: " + e.getMessage() + ChatColor.RESET + "\n";
+                newStatus += ChatColor.GRAY + placeholderServer + ChatColor.RED + " " + e.getClass().getSimpleName() + ": " + e.getMessage() + ChatColor.RESET + "\n";
             }
         }
         this.status = newStatus;
