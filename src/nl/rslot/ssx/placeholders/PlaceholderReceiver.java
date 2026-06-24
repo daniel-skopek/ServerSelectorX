@@ -52,6 +52,7 @@ public class PlaceholderReceiver {
 
     public void updatePlaceholders() {
         if (this.placeholderServers.size() == 0 || this.networkId == null) {
+            this.status = "Please configure network-id and placeholder-servers in plugins/ServerSelectorX/config/server.yml";
             return;
         }
 
