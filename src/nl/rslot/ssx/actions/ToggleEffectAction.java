@@ -1,6 +1,8 @@
 package nl.rslot.ssx.actions;
 
 import org.bukkit.Bukkit;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -40,7 +42,7 @@ public class ToggleEffectAction extends Action {
 			duration = Integer.MAX_VALUE;
 		}
 
-		final PotionEffectType effect = PotionEffectType.getByName(effectName);
+		final PotionEffectType effect = Registry.EFFECT.get(NamespacedKey.fromString(effectName));
 
 		if (effect == null) {
 			player.sendMessage("Invalid effect type '" + value + "'.");

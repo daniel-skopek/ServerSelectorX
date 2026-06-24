@@ -2,7 +2,7 @@
 # the same directory and giving it a different name.
 
 item:
-  material: COMPASS
+  material: compass
   title: '&7Server Selector'
   lore:
    - '&7Right click this item to select a server'

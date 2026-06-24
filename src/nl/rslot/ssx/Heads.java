@@ -2,22 +2,37 @@ package nl.rslot.ssx;
 
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.bukkit.profile.PlayerProfile;
+import org.bukkit.profile.PlayerTextures;
+import org.jetbrains.annotations.Nullable;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 
 public class Heads {
 
@@ -49,7 +64,22 @@ public class Heads {
 		this.handlers.put("url", new TextureURLHandler());
 	}
 
-	public CompletableFuture<@Nullable String> getHead(final String identifier) throws InvalidConfigurationException {
+	public void getHeadItem(final Player player, String identifier, final Consumer<ItemStack> itemConsumer) throws InvalidConfigurationException {
+		final ItemStack item = new ItemStack(Material.PLAYER_HEAD);
+		final SkullMeta meta = (SkullMeta) item.getItemMeta();
+
+		if (identifier.equals("self") || identifier.equals("auto")) {
+			if (Main.getConfigurationManager().getMiscConfiguration().getBoolean("mojang-api-head-auto", false)) {
+				identifier = "uuid:" + player.getUniqueId();
+			} else {
+				// Bypass head system, just return player's own head. No need to get a texture, because the server caches it for online players
+				meta.setOwningPlayer(player);
+				item.setItemMeta(meta);
+				itemConsumer.accept(item);
+				return;
+			}
+		}
+
 		final int index = identifier.indexOf(":");
 
 		if (index == -1) {
@@ -63,7 +93,53 @@ public class Heads {
 			throw new InvalidConfigurationException("Invalid head type: " + type);
 		}
 
-		return this.handlers.get(type).getHeadTexture(value);
+		final CompletableFuture<@Nullable String> future = this.handlers.get(type).getHeadTexture(value);
+
+		Futures.whenCompleteOnMainThread(Main.getPlugin(), future, (headTexture, exception) -> {
+			if (exception != null) {
+				exception.printStackTrace();
+				return;
+			}
+
+			if (headTexture == null) {
+				itemConsumer.accept(item); // return head without modifications (Steve)
+				return;
+			}
+
+			// Now that we've obtained the Base64 texture, extract the skint exture URL from it and set it on the item.
+			final String skinTextureJson;
+			try {
+				skinTextureJson = new String(Base64.getDecoder().decode(headTexture), StandardCharsets.UTF_8.toString());
+			} catch (final UnsupportedEncodingException e) {
+				throw new RuntimeException("Failed to decode skin texture base64: " + headTexture);
+			}
+
+			final URL skinTextureUrl;
+			try {
+				skinTextureUrl = new URI(
+						JsonParser.parseString(skinTextureJson)
+								.getAsJsonObject()
+								.get("textures")
+								.getAsJsonObject()
+								.get("SKIN")
+								.getAsJsonObject()
+								.get("url")
+								.getAsString()
+						).toURL();
+			} catch (IllegalStateException | JsonSyntaxException | MalformedURLException | URISyntaxException e) {
+				throw new RuntimeException("Failed to parse skin texture json: " + skinTextureJson);
+			}
+
+			final PlayerProfile profile = Bukkit.getServer().createPlayerProfile(UUID.randomUUID());
+			final PlayerTextures textures = profile.getTextures();
+			textures.setSkin(skinTextureUrl);
+			profile.setTextures(textures);
+
+			meta.setOwnerProfile(profile);
+			item.setItemMeta(meta);
+			itemConsumer.accept(item);
+		});
+
 	}
 
 	private interface HeadHandler {
@@ -152,7 +228,7 @@ public class Heads {
 				try {
 					final HttpURLConnection connection = (HttpURLConnection) URI.create("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid).toURL().openConnection();
 					try (final Reader reader = new InputStreamReader(connection.getInputStream())) {
-						final JsonObject jsonResponse = Main.JSON_PARSER.parse(reader).getAsJsonObject();
+						final JsonObject jsonResponse = JsonParser.parseReader(reader).getAsJsonObject();
 						final String texture = jsonResponse.get("properties").getAsJsonArray().get(0).getAsJsonObject().get("value").getAsString();
 						this.cachedTextures.put(name, texture);
 						future.complete(texture);

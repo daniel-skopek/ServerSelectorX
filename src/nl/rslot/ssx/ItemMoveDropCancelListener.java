@@ -3,7 +3,6 @@ package nl.rslot.ssx;
 import java.util.List;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -14,10 +13,6 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
-import org.bukkit.inventory.ItemStack;
-
-import de.tr7zw.changeme.nbtapi.NBT;
-import de.tr7zw.changeme.nbtapi.iface.ReadableNBT;
 
 public class ItemMoveDropCancelListener implements Listener {
 
@@ -31,18 +26,6 @@ public class ItemMoveDropCancelListener implements Listener {
 		return (onlyIn.isEmpty() || onlyIn.contains(world.getName())) && !exceptions.contains(world.getName());
 	}
 
-	private boolean isSsxItem(final ItemStack item) {
-		if (item == null || item.getType() == Material.AIR) {
-			return false;
-		} else {
-			final ReadableNBT nbt = NBT.readNbt(item);
-			// "SSXItem" and "SSXActions" is for items from older versions, this can be removed later
-			return nbt.hasTag("SSXItem") ||
-					nbt.hasTag("SSXActions") ||
-					nbt.hasTag("SSXItemConfigName");
-		}
-	}
-
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
 	public void onDrop(final PlayerDropItemEvent event) {
 		if (!Main.getConfigurationManager().getInventoryConfiguration().getBoolean("cancel-item-drop")) {
@@ -53,7 +36,7 @@ public class ItemMoveDropCancelListener implements Listener {
 				this.isCancelledWorld(event.getPlayer().getWorld()) &&
 				(
 						!Main.getConfigurationManager().getInventoryConfiguration().getBoolean("ssx-items-only") ||
-						this.isSsxItem(event.getItemDrop().getItemStack())
+						ServerSelectorX.isSSXItem(event.getItemDrop().getItemStack())
 				)
 		) {
 			event.setCancelled(true);
@@ -70,11 +53,11 @@ public class ItemMoveDropCancelListener implements Listener {
 				this.isCancelledWorld(event.getWhoClicked().getWorld()) &&
 				(
 						!Main.getConfigurationManager().getInventoryConfiguration().getBoolean("ssx-items-only") ||
-						this.isSsxItem(event.getCursor()) ||
-						this.isSsxItem(event.getCurrentItem()) ||
+						ServerSelectorX.isSSXItem(event.getCursor()) ||
+						ServerSelectorX.isSSXItem(event.getCurrentItem()) ||
 						(
 								event.getClick() == ClickType.NUMBER_KEY &&
-								this.isSsxItem(event.getWhoClicked().getInventory().getItem(event.getHotbarButton()))
+								ServerSelectorX.isSSXItem(event.getWhoClicked().getInventory().getItem(event.getHotbarButton()))
 						)
 				)
 		);
@@ -88,7 +71,7 @@ public class ItemMoveDropCancelListener implements Listener {
 				this.isCancelledWorld(event.getWhoClicked().getWorld()) &&
 				(
 						!Main.getConfigurationManager().getInventoryConfiguration().getBoolean("ssx-items-only") ||
-						this.isSsxItem(event.getCursor())
+						ServerSelectorX.isSSXItem(event.getCursor())
 				)
 		);
 	}
@@ -101,8 +84,8 @@ public class ItemMoveDropCancelListener implements Listener {
 				this.isCancelledWorld(event.getPlayer().getWorld()) &&
 				(
 						!Main.getConfigurationManager().getInventoryConfiguration().getBoolean("ssx-items-only") ||
-						this.isSsxItem(event.getMainHandItem()) ||
-						this.isSsxItem(event.getOffHandItem())
+						ServerSelectorX.isSSXItem(event.getMainHandItem()) ||
+						ServerSelectorX.isSSXItem(event.getOffHandItem())
 				)
 		);
 	}
@@ -110,7 +93,7 @@ public class ItemMoveDropCancelListener implements Listener {
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
 	public void onDeath(final PlayerDeathEvent event) {
 		if (Main.getConfigurationManager().getInventoryConfiguration().getBoolean("remove-ssx-items-on-death")) {
-			event.getDrops().removeIf(this::isSsxItem);
+			event.getDrops().removeIf(ServerSelectorX::isSSXItem);
 		}
 	}
 

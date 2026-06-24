@@ -3,7 +3,7 @@ package nl.rslot.ssx.actions;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-import xyz.derkades.derkutils.bukkit.PlaceholderUtil;
+import nl.rslot.ssx.util.PlaceholderUtil;
 
 public class ConsoleCommandAction extends Action {
 

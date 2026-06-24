@@ -8,11 +8,15 @@ import java.util.Collections;
 import java.util.List;
 
 import org.bukkit.entity.Player;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
+import org.jetbrains.annotations.Nullable;
 
 import nl.rslot.ssx.actions.Action;
 import nl.rslot.ssx.placeholders.Server;
-import xyz.derkades.derkutils.Cooldown;
+import nl.rslot.ssx.util.Cooldown;
 
 public class ServerSelectorX {
 
@@ -63,6 +67,23 @@ public class ServerSelectorX {
 
 	public static HotbarItemManager getHotbarItemManager() {
 		return Main.getPlugin().getHotbarItemManager();
+	}
+
+	public static @Nullable String getItemConfigName(final ItemStack item) {
+		final ItemMeta meta = item.getItemMeta();
+		final PersistentDataContainer data = meta.getPersistentDataContainer();
+		return data.get(Main.getPlugin().KEY_CONFIG_NAME, PersistentDataType.STRING);
+	}
+
+	public static boolean isSSXItem(final ItemStack item) {
+		return getItemConfigName(item) != null;
+	}
+
+	public static void setItemConfigName(final ItemStack item, final @Nullable String value) {
+		final ItemMeta meta = item.getItemMeta();
+		final PersistentDataContainer data = meta.getPersistentDataContainer();
+		data.set(Main.getPlugin().KEY_CONFIG_NAME, PersistentDataType.STRING, value);
+		item.setItemMeta(meta);
 	}
 
 }

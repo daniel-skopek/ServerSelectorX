@@ -9,7 +9,6 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import nl.rslot.ssx.placeholders.Server;
@@ -18,7 +17,7 @@ public class ServerSelectorXCommandCompleter implements TabCompleter {
 
 	@Nullable
 	@Override
-	public List<String> onTabComplete(@NotNull final CommandSender sender, @NotNull final Command command, @NotNull final String alias, @NotNull final String[] args) {
+	public List<String> onTabComplete(final CommandSender sender, final Command command, final String alias, final String[] args) {
 		if (!sender.hasPermission("ssx.admin")) {
 			return null;
 		}

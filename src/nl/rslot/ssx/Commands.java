@@ -8,17 +8,16 @@ import org.bukkit.command.CommandMap;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
 
 import nl.rslot.ssx.actions.Action;
-import xyz.derkades.derkutils.Cooldown;
-import xyz.derkades.derkutils.bukkit.Colors;
-import xyz.derkades.derkutils.bukkit.reflection.ReflectionUtil;
+import nl.rslot.ssx.util.ColorUtil;
+import nl.rslot.ssx.util.CommandMapUtil;
+import nl.rslot.ssx.util.Cooldown;
 
 public class Commands {
 
 	static void registerCustomCommands() {
-		final CommandMap commandMap = ReflectionUtil.getCommandMap();
+		final CommandMap commandMap = CommandMapUtil.getCommandMap();
 
 		for (final String commandName : Main.getConfigurationManager().listCommandConfigurations()) {
 			final FileConfiguration config = Main.getConfigurationManager().getCommandConfiguration(commandName);
@@ -35,7 +34,7 @@ public class Commands {
 			commandMap.register("ssx-custom", new Command(commandName, description, usage, aliases) {
 
 				@Override
-				public boolean execute(final @NotNull CommandSender sender, final @NotNull String label, final String[] args) {
+				public boolean execute(final CommandSender sender, final String label, final String[] args) {
 					if (sender instanceof Player){
 						final Player player = (Player) sender;
 
@@ -46,7 +45,7 @@ public class Commands {
 							if (timeLeft > 0) {
 								final String cooldownMessage = configMisc.getString("cooldown-message");
 								if (cooldownMessage != null) {
-									player.sendMessage(Colors.parseColors(String.format(cooldownMessage, timeLeft / 1000.0)));
+									player.sendMessage(ColorUtil.parseColors(String.format(cooldownMessage, timeLeft / 1000.0)));
 								}
 								return true;
 							}
@@ -57,7 +56,7 @@ public class Commands {
 						if (config.getBoolean("permission", false) && !player.hasPermission("ssx.command." + commandName)) {
 							final String permissionMessage = configMisc.getString("no-permission");
 							if (permissionMessage != null) {
-								player.sendMessage(Colors.parseColors(permissionMessage));
+								player.sendMessage(ColorUtil.parseColors(permissionMessage));
 							}
 							return true;
 						}

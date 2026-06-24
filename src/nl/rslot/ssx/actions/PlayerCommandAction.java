@@ -4,7 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import nl.rslot.ssx.Main;
-import xyz.derkades.derkutils.bukkit.PlaceholderUtil;
+import nl.rslot.ssx.util.PlaceholderUtil;
 
 public class PlayerCommandAction extends Action {
 

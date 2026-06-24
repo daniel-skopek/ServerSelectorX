@@ -15,11 +15,12 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import nl.rslot.ssx.Main;
 
@@ -95,7 +96,7 @@ public class PlaceholderReceiver {
 
         try (InputStream in = connection.getInputStream()) {
             final byte[] data = in.readAllBytes();
-            final JsonObject repsonseJson = Main.JSON_PARSER.parse(new String(data)).getAsJsonObject();
+            final JsonObject repsonseJson = JsonParser.parseString(new String(data)).getAsJsonObject();
             this.servers = parseResponse(repsonseJson);
         }
     }

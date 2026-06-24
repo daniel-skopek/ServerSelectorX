@@ -2,39 +2,30 @@ package nl.rslot.ssx;
 
 import java.io.IOException;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.ItemType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.google.gson.JsonParser;
-
-import de.tr7zw.changeme.nbtapi.utils.MinecraftVersion;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import nl.rslot.ssx.configuration.ConfigurationManager;
 import nl.rslot.ssx.placeholders.PapiExpansionRegistrar;
 import nl.rslot.ssx.placeholders.PlaceholderReceiver;
-import xyz.derkades.derkutils.bukkit.NbtItemBuilder;
-import xyz.derkades.derkutils.bukkit.PlaceholderUtil;
+import nl.rslot.ssx.util.PlaceholderUtil;
 
 public class Main extends JavaPlugin {
-
-	static {
-		// Disable NBT API update checker
-		MinecraftVersion.disableUpdateCheck();
-	}
-
-	public static final JsonParser JSON_PARSER = new JsonParser();
 
 	// When set to true, debug information related to giving items on join is printed to the
 	// console. This boolean is enabled using /ssx lagdebug
@@ -53,6 +44,14 @@ public class Main extends JavaPlugin {
 
 	private static PlaceholderReceiver placeholderReceiver;
 
+	public final NamespacedKey KEY_CONFIG_NAME = new NamespacedKey(this, "config_name");
+	public final NamespacedKey KEY_ACTIONS = new NamespacedKey(this, "actions");
+	public final NamespacedKey KEY_ACTIONS_LEFT = new NamespacedKey(this, "actions_left");
+	public final NamespacedKey KEY_ACTIONS_RIGHT = new NamespacedKey(this, "actions_right");
+	public final NamespacedKey KEY_COOLDOWN_TIME = new NamespacedKey(this, "cooldown_time");
+	public final NamespacedKey KEY_COOLDOWN_ID = new NamespacedKey(this, "cooldown_id");
+	public final NamespacedKey KEY_COOLDOWN_ACTIONS = new NamespacedKey(this, "cooldown_actions");
+
 	@SuppressWarnings("null")
 	@NotNull
 	public static Main getPlugin(){
@@ -62,8 +61,6 @@ public class Main extends JavaPlugin {
 	@Override
 	public void onEnable() {
 		plugin = this;
-
-		MinecraftVersion.replaceLogger(this.getLogger());
 
 		configurationManager = new ConfigurationManager();
 		try {
@@ -121,7 +118,7 @@ public class Main extends JavaPlugin {
 		return placeholderReceiver;
 	}
 
-    public static void getItemBuilderFromMaterialString(final Player player, @Nullable String materialString, final Consumer<NbtItemBuilder> builderConsumer) throws InvalidConfigurationException {
+    public static void getItemFromMaterialString(final Player player, @Nullable String materialString, final Consumer<ItemStack> itemConsumer) throws InvalidConfigurationException {
 		if (materialString == null || materialString.isEmpty()) {
 			return;
 		}
@@ -131,53 +128,22 @@ public class Main extends JavaPlugin {
 		}
 
 		if (materialString.startsWith("head:")) {
-			String headValue = materialString.substring(5);
-			if (headValue.equals("self") || headValue.equals("auto")) {
-				if (getConfigurationManager().getMiscConfiguration().getBoolean("mojang-api-head-auto", false)) {
-					headValue = "uuid:" + player.getUniqueId();
-				} else {
-					// Bypass head system, just return player's own head. No need to get a texture, because the server caches it for online players
-					builderConsumer.accept(new NbtItemBuilder(Material.PLAYER_HEAD).skullOwner(player));
-					return;
-				}
-			}
-
-			final CompletableFuture<@Nullable String> headTextureFuture = plugin.heads.getHead(headValue);
-
-			Futures.whenCompleteOnMainThread(plugin, headTextureFuture, (headTexture, exception) -> {
-				if (exception != null) {
-					exception.printStackTrace();
-					return;
-				}
-
-				if (headTexture != null) {
-					builderConsumer.accept(new NbtItemBuilder(Material.PLAYER_HEAD).skullTexture(headTexture));
-				} else {
-					builderConsumer.accept(new NbtItemBuilder(Material.PLAYER_HEAD));
-				}
-			});
+			final String headValue = materialString.substring(5);
+			plugin.heads.getHeadItem(player, headValue, itemConsumer);
 			return;
 		}
 
-		final String[] materialsToTry = materialString.split("\\|");
-		Material material = null;
-		for (final String materialString2 : materialsToTry) {
-			try {
-				material = Material.valueOf(materialString2);
-				break;
-			} catch (final IllegalArgumentException ignored) {
-			}
-		}
-
-		if (material == null) {
+		final ItemType item;
+		try {
+			// convert to lowercase for best-effort Material compatibility
+			item = Registry.ITEM.getOrThrow(NamespacedKey.fromString(materialString.toLowerCase()));
+		} catch (IllegalArgumentException | NullPointerException e) {
 			player.sendMessage("Invalid item name '" + materialString + "'");
 			player.sendMessage("https://github.com/ServerSelectorX/ServerSelectorX/wiki/Item-names");
 			return;
 		}
 
-		if (material != Material.AIR) {
-			builderConsumer.accept(new NbtItemBuilder(material));
-		}
+		itemConsumer.accept(item.createItemStack());
 	}
 
 	private static final LegacyComponentSerializer LEGACY_COMPONENT_SERIALIZER = LegacyComponentSerializer.builder()

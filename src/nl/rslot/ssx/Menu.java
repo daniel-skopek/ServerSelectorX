@@ -5,7 +5,6 @@ import java.util.Objects;
 
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.Sound;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -16,13 +15,13 @@ import org.jetbrains.annotations.Nullable;
 
 import nl.rslot.ssx.actions.Action;
 import nl.rslot.ssx.conditional.ConditionalItem;
-import xyz.derkades.derkutils.Cooldown;
-import xyz.derkades.derkutils.bukkit.Colors;
-import xyz.derkades.derkutils.bukkit.PlaceholderUtil;
-import xyz.derkades.derkutils.bukkit.menu.IconMenu;
-import xyz.derkades.derkutils.bukkit.menu.MenuCloseEvent;
-import xyz.derkades.derkutils.bukkit.menu.OptionClickEvent;
-import xyz.derkades.derkutils.bukkit.menu.SlotClickEvent;
+import nl.rslot.ssx.menu.IconMenu;
+import nl.rslot.ssx.menu.MenuCloseEvent;
+import nl.rslot.ssx.menu.OptionClickEvent;
+import nl.rslot.ssx.menu.SlotClickEvent;
+import nl.rslot.ssx.util.ColorUtil;
+import nl.rslot.ssx.util.Cooldown;
+import nl.rslot.ssx.util.PlaceholderUtil;
 
 public class Menu extends IconMenu {
 
@@ -37,7 +36,7 @@ public class Menu extends IconMenu {
 		}
 		String titleString = config.getBoolean("title-minimessage")
 				? Main.miniMessageToLegacy(config.getString("title"))
-				: Colors.parseColors(config.getString("title"));
+				: ColorUtil.parseColors(config.getString("title"));
 		titleString = titleString.replace("{player}", player.getName());
 		titleString = PlaceholderUtil.parsePapiPlaceholders(player, titleString);
 		return titleString;
@@ -59,15 +58,6 @@ public class Menu extends IconMenu {
 			player.sendMessage("Check for identation and balanced quotes. If you want to use quotation marks in strings, they must be escaped properly by putting two quotation marks (for example \"\" or '').");
 			player.sendMessage("Menu name: " + configName);
 			return;
-		}
-
-		try {
-			if (config.contains("sound")) {
-				player.playSound(player.getLocation(), Sound.valueOf(config.getString("sound")), 1.0f, 1.0f);
-			}
-		} catch (final IllegalArgumentException e) {
-			Main.getPlugin().getLogger().warning("Invalid sound name in config file '" + configName + "'");
-			Main.getPlugin().getLogger().warning("https://github.com/ServerSelectorX/ServerSelectorX/wiki/Sound-names");
 		}
 
 		final int updateInterval = config.getInt("update-interval", 100);

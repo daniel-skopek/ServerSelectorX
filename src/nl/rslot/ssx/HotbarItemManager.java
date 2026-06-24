@@ -21,8 +21,6 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
-import de.tr7zw.changeme.nbtapi.NBT;
-import de.tr7zw.changeme.nbtapi.iface.ReadableNBT;
 import nl.rslot.ssx.conditional.ConditionalItem;
 
 public class HotbarItemManager {
@@ -84,9 +82,7 @@ public class HotbarItemManager {
 		final PlayerInventory inv = player.getInventory();
 		try {
 			ConditionalItem.getItem(player, config.getConfigurationSection("item"), cooldownId, item -> {
-				NBT.modify(item, nbt -> {
-					nbt.setString("SSXItemConfigName", configName);
-				});
+				ServerSelectorX.setItemConfigName(item, configName);
 
 				final int configuredSlot = config.getInt("give.inv-slot", 0);
 
@@ -139,19 +135,11 @@ public class HotbarItemManager {
 				continue;
 			}
 
-			final ReadableNBT nbt = NBT.readNbt(item);
-
-			if (!nbt.hasTag("SSXItemConfigName")) {
-				// Not our item
-				if (nbt.hasTag("SSXActions")) {
-					// actually, it is our item from an old SSX version
-					this.debug("Removing item from old SSX version from slot " + slot);
-					player.getInventory().setItem(slot, null);
-				}
+			final String configName = ServerSelectorX.getItemConfigName(item);
+			if (configName == null) {
+				// Not an SSX item
 				continue;
 			}
-
-			final String configName = nbt.getString("SSXItemConfigName");
 
 			if (this.shouldHaveItem(player, configName)) {
 				this.debug("Player is allowed to keep item in slot " + slot);
@@ -225,22 +213,21 @@ public class HotbarItemManager {
 			}
 
 			final ItemStack pickedUpItem = event.getItem().getItemStack();
-			final ReadableNBT nbt = NBT.readNbt(pickedUpItem);
-			if (!nbt.hasTag(("SSXItemConfigName"))) {
-				return;
+			final String item1name = ServerSelectorX.getItemConfigName(pickedUpItem);
+			if (item1name == null) {
+				return; // not an SSX item
 			}
 
 			// Scan player inventory for an item with the same config name
 			// If found, the item should not be picked up
 
 			final Player player = (Player) event.getEntity();
-			final String itemConfigName = nbt.getString("SSXItemConfigName");
 			for (final ItemStack item2 : player.getInventory().getStorageContents()) {
 				if (item2 == null || item2.getType() == Material.AIR) {
 					continue;
 				}
-				final ReadableNBT nbt2 = NBT.readNbt(item2);
-				if (nbt2.hasTag("SSXItemConfigName") && nbt2.getString("SSXItemConfigName").equals(itemConfigName)) {
+				final String item2name = ServerSelectorX.getItemConfigName(item2);
+				if (item2name != null && item1name.equals(item2name)) {
 					Main.getPlugin().getLogger().info("Deleted duplicate item picked up by " + event.getEntity().getName());
 					event.setCancelled(true);
 					event.getItem().remove();

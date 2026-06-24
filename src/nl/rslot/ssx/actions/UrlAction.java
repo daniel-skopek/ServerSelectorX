@@ -5,7 +5,7 @@ import org.bukkit.entity.Player;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import nl.rslot.ssx.Main;
-import xyz.derkades.derkutils.bukkit.Colors;
+import nl.rslot.ssx.util.ColorUtil;
 
 public class UrlAction extends Action {
 
@@ -15,7 +15,7 @@ public class UrlAction extends Action {
 
 	@Override
 	public boolean apply(final Player player, final String url) {
-		final String message = Colors.parseColors(Main.getConfigurationManager().getMiscConfiguration().getString("url-message", "&3&lClick here"));
+		final String message = ColorUtil.parseColors(Main.getConfigurationManager().getMiscConfiguration().getString("url-message", "&3&lClick here"));
 
 		player.spigot().sendMessage(
 				new ComponentBuilder(message)

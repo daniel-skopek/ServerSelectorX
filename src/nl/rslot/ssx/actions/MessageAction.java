@@ -2,8 +2,8 @@ package nl.rslot.ssx.actions;
 
 import org.bukkit.entity.Player;
 
-import xyz.derkades.derkutils.bukkit.Colors;
-import xyz.derkades.derkutils.bukkit.PlaceholderUtil;
+import nl.rslot.ssx.util.ColorUtil;
+import nl.rslot.ssx.util.PlaceholderUtil;
 
 public class MessageAction extends Action {
 
@@ -13,7 +13,7 @@ public class MessageAction extends Action {
 
 	@Override
 	public boolean apply(final Player player, final String value) {
-		player.sendMessage(PlaceholderUtil.parsePapiPlaceholders(player, Colors.parseColors(value)));
+		player.sendMessage(PlaceholderUtil.parsePapiPlaceholders(player, ColorUtil.parseColors(value)));
 		return false;
 	}
 

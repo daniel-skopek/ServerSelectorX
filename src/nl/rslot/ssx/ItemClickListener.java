@@ -13,10 +13,8 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 
-import de.tr7zw.changeme.nbtapi.NBT;
-import de.tr7zw.changeme.nbtapi.iface.ReadableNBT;
 import nl.rslot.ssx.conditional.ConditionalItem;
-import xyz.derkades.derkutils.Cooldown;
+import nl.rslot.ssx.util.Cooldown;
 
 public class ItemClickListener implements Listener {
 
@@ -53,9 +51,7 @@ public class ItemClickListener implements Listener {
 			return;
 		}
 
-		final ReadableNBT nbt = NBT.readNbt(item);
-
-		if (!nbt.hasTag("SSXActions")) {
+		if (!ServerSelectorX.isSSXItem(item)) {
 			if (Main.ITEM_DEBUG) {
 				logger.info("[Click debug] Event was ignored because the clicked item is not an SSX item");
 			}

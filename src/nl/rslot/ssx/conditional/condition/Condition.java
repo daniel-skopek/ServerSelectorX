@@ -4,17 +4,16 @@ import java.util.Map;
 
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
 
 public abstract class Condition {
 
-	private final @NotNull String type;
+	private final String type;
 
-	Condition(final @NotNull String type) {
+	Condition(final String type) {
 		this.type = type;
 	}
 
-	public @NotNull String getType() {
+	public String getType() {
 		return this.type;
 	}
 

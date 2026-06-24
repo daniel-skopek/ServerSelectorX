@@ -2,6 +2,9 @@ package nl.rslot.ssx.configuration;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.nio.file.Files;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
@@ -9,11 +12,9 @@ import java.util.Set;
 
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import nl.rslot.ssx.Main;
-import xyz.derkades.derkutils.FileUtils;
 
 /**
  * Manages configuration files
@@ -22,6 +23,23 @@ public class ConfigurationManager {
 
 	private static final File CONFIG_DIR = new File(Main.getPlugin().getDataFolder(), "config");
 
+	/**
+	 * Copies any file in a jar file to an outside locations. Fails silently if the file already exists.
+	 * @param clazz Class this method is called from
+	 * @param pathToFileInJar
+	 * @param outputFile
+	 */
+	public static void copyOutOfJar(final Class<?> clazz,
+									final String pathToFileInJar,
+									final File outputFile) throws IOException {
+		if (!outputFile.exists()){
+			final URL inputUrl = clazz.getResource(pathToFileInJar);
+			try (InputStream in = inputUrl.openStream()) {
+				Files.copy(in, outputFile.toPath());
+			}
+		}
+	}
+
 	private enum StandardConfigFile {
 
 		SERVER(new File(CONFIG_DIR, "server.yml")),
@@ -29,16 +47,14 @@ public class ConfigurationManager {
 		JOIN(new File(CONFIG_DIR, "join.yml")),
 		MISC(new File(CONFIG_DIR, "misc.yml"));
 
-		private final @NotNull File file;
+		private final File file;
 
-		StandardConfigFile(final @NotNull File file){
+		StandardConfigFile(final File file){
 			this.file = file;
 		}
 
-		private @NotNull YamlConfiguration copyLoad() throws IOException {
-			if (!this.file.exists()) {
-				FileUtils.copyOutOfJar(this.getClass(), "/config/" + this.file.getName(), this.file);
-			}
+		private YamlConfiguration copyLoad() throws IOException {
+			copyOutOfJar(this.getClass(), "/config/" + this.file.getName(), this.file);
 			return YamlConfiguration.loadConfiguration(this.file);
 		}
 	}
@@ -49,12 +65,12 @@ public class ConfigurationManager {
 		ITEM(new File(Main.getPlugin().getDataFolder(), "item"), "/item.yml", "compass.yml"),
 		MENU(new File(Main.getPlugin().getDataFolder(), "menu"), "/menu.yml", "serverselector.yml");
 
-		private final @NotNull File dir;
-		private final @NotNull String defaultFileInJar;
-		private final @NotNull String defaultFileOutsideJar;
+		private final File dir;
+		private final String defaultFileInJar;
+		private final String defaultFileOutsideJar;
 
-		MultiConfigFile(final @NotNull File dir, final @NotNull String defaultFileInJar,
-						final @NotNull String defaultFileOutsideJar) {
+		MultiConfigFile(final File dir, final String defaultFileInJar,
+						final String defaultFileOutsideJar) {
 			this.dir = dir;
 			this.defaultFileInJar = defaultFileInJar;
 			this.defaultFileOutsideJar = defaultFileOutsideJar;
@@ -75,11 +91,10 @@ public class ConfigurationManager {
 			}
 		}
 
-		private void copyLoad(final @NotNull Map<String, FileConfiguration> dest) throws IOException {
+		private void copyLoad(final Map<String, FileConfiguration> dest) throws IOException {
 			if (!this.dir.exists()) {
 				this.dir.mkdir();
-				FileUtils.copyOutOfJar(this.getClass(), this.defaultFileInJar,
-						new File(this.dir, this.defaultFileOutsideJar));
+				copyOutOfJar(this.getClass(), this.defaultFileInJar, new File(this.dir, this.defaultFileOutsideJar));
 			}
 
 			this.loadDirectory("", this.dir, dest);
@@ -128,7 +143,7 @@ public class ConfigurationManager {
 		}
 	}
 
-	public @NotNull Set<String> listCommandConfigurations() {
+	public Set<String> listCommandConfigurations() {
 		synchronized(this.MULTI_FILES) {
 			return this.MULTI_FILES.get(MultiConfigFile.COMMAND).keySet();
 		}
@@ -140,7 +155,7 @@ public class ConfigurationManager {
 		}
 	}
 
-	public @NotNull Set<String> listItemConfigurations() {
+	public Set<String> listItemConfigurations() {
 		synchronized(this.MULTI_FILES) {
 			return this.MULTI_FILES.get(MultiConfigFile.ITEM).keySet();
 		}
@@ -152,31 +167,31 @@ public class ConfigurationManager {
 		}
 	}
 
-	public @NotNull Set<String> listMenuConfigurations() {
+	public Set<String> listMenuConfigurations() {
 		synchronized(this.MULTI_FILES) {
 			return this.MULTI_FILES.get(MultiConfigFile.MENU).keySet();
 		}
 	}
 
-	public @NotNull FileConfiguration getServerConfiguration() {
+	public FileConfiguration getServerConfiguration() {
 		synchronized(this.STANDARD_FILES) {
 			return this.STANDARD_FILES.get(StandardConfigFile.SERVER);
 		}
 	}
 
-	public @NotNull FileConfiguration getInventoryConfiguration() {
+	public FileConfiguration getInventoryConfiguration() {
 		synchronized(this.STANDARD_FILES) {
 			return this.STANDARD_FILES.get(StandardConfigFile.INVENTORY);
 		}
 	}
 
-	public @NotNull FileConfiguration getJoinConfiguration() {
+	public FileConfiguration getJoinConfiguration() {
 		synchronized(this.STANDARD_FILES) {
 			return this.STANDARD_FILES.get(StandardConfigFile.JOIN);
 		}
 	}
 
-	public @NotNull FileConfiguration getMiscConfiguration() {
+	public FileConfiguration getMiscConfiguration() {
 		synchronized(this.STANDARD_FILES) {
 			return this.STANDARD_FILES.get(StandardConfigFile.MISC);
 		}

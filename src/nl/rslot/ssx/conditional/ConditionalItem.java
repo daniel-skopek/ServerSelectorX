@@ -13,31 +13,30 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import org.bukkit.Color;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.NotNull;
+import org.bukkit.inventory.meta.Damageable;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.Nullable;
 
-import de.tr7zw.changeme.nbtapi.NBT;
-import de.tr7zw.changeme.nbtapi.NbtApiException;
-import de.tr7zw.changeme.nbtapi.iface.ReadableNBT;
-import de.tr7zw.changeme.nbtapi.iface.ReadableNBTList;
 import nl.rslot.ssx.Main;
 import nl.rslot.ssx.ServerSelectorX;
 import nl.rslot.ssx.actions.Action;
 import nl.rslot.ssx.conditional.condition.Condition;
 import nl.rslot.ssx.conditional.condition.Conditions;
+import nl.rslot.ssx.menu.OptionClickEvent;
 import nl.rslot.ssx.placeholders.Server;
-import xyz.derkades.derkutils.Cooldown;
-import xyz.derkades.derkutils.bukkit.Colors;
-import xyz.derkades.derkutils.bukkit.PlaceholderUtil;
-import xyz.derkades.derkutils.bukkit.menu.OptionClickEvent;
+import nl.rslot.ssx.util.ColorUtil;
+import nl.rslot.ssx.util.Cooldown;
+import nl.rslot.ssx.util.PlaceholderUtil;
 
 public class ConditionalItem {
 
@@ -76,8 +75,6 @@ public class ConditionalItem {
 		return sectionToMap(globalSection);
 	}
 
-
-
 	private static Map<String, Object> sectionToMap(final ConfigurationSection section) {
 		final Map<String, Object> map = new HashMap<>();
 		for (final String key : section.getKeys(false)) {
@@ -87,8 +84,8 @@ public class ConditionalItem {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static void getItem(@NotNull final Player player, @NotNull final ConfigurationSection section,
-							   @NotNull final String cooldownId, @NotNull final Consumer<@NotNull ItemStack> consumer)
+	public static void getItem(final Player player, final ConfigurationSection section,
+							   final String cooldownId, final Consumer<ItemStack> consumer)
 			throws InvalidConfigurationException {
 
 		final Map<String, Object> matchedSection = matchSection(player, section);
@@ -99,7 +96,9 @@ public class ConditionalItem {
 			throw new InvalidConfigurationException("Material is missing from config or null");
 		}
 
-		Main.getItemBuilderFromMaterialString(player, materialString, builder -> {
+		Main.getItemFromMaterialString(player, materialString, item -> {
+			final ItemMeta meta = item.getItemMeta();
+
 			final boolean useMiniMessage = (boolean) matchedSection.getOrDefault("minimessage", false);
 			final String title = (String) matchedSection.getOrDefault("title", " ");
 			final List<String> lore = (List<String>) matchedSection.getOrDefault("lore", Collections.emptyList());
@@ -108,7 +107,6 @@ public class ConditionalItem {
 			final boolean amountOnline = (boolean) matchedSection.getOrDefault("amount-online", false);
 			int amount = (int) matchedSection.getOrDefault("amount", 1);
 			final int durability = (int) matchedSection.getOrDefault("durability", -1);
-			final @Nullable String nbtJson = (String) matchedSection.getOrDefault("nbt", null);
 			final List<String> actions = (List<String>) matchedSection.getOrDefault("actions", Collections.emptyList());
 			final List<String> leftClickActions = (List<String>) matchedSection.getOrDefault("left-click-actions", Collections.emptyList());
 			final List<String> rightClickActions = (List<String>) matchedSection.getOrDefault("right-click-actions", Collections.emptyList());
@@ -116,7 +114,6 @@ public class ConditionalItem {
 			final List<String> cooldownActions = (List<String>) matchedSection.getOrDefault("cooldown-actions", Collections.emptyList());
 			final @Nullable String serverName = (String) matchedSection.get("server-name");
 			final @Nullable String color = (String) matchedSection.get("color");
-			final @Nullable Integer modelData = (Integer) matchedSection.getOrDefault("model-data", null);
 
 			final @Nullable Server server = serverName != null ? Main.placeholderReceiver().getServer(serverName) : null;
 
@@ -137,30 +134,32 @@ public class ConditionalItem {
 				} else {
 					string = "&r&f" + string;
 				}
-				string = Colors.parseColors(string);
+				string = ColorUtil.parseColors(string);
 				return string;
 			};
 
-			builder.name(stringConverter.apply(title));
+			meta.setDisplayName(stringConverter.apply(title));
 
 			if (!lore.isEmpty()) {
 				final List<String> parsedLore = new ArrayList<>(lore.size());
 				for (final String line : lore) {
 					parsedLore.add(stringConverter.apply(line));
 				}
-				builder.lore(parsedLore);
+				meta.setLore(parsedLore);
 			}
 
 			if (enchanted) {
-				builder.unsafeEnchant(Enchantment.DURABILITY, 1);
+				meta.setEnchantmentGlintOverride(true);
 			}
 
-			builder.hideFlags(hideFlags);
+			if (hideFlags) {
+				meta.addItemFlags(ItemFlag.values());
+			}
 
-			builder.amount(amount);
+			item.setAmount(amount);
 
 			if (durability >= 0) {
-				builder.damage(durability);
+				((Damageable) meta).setDamage(durability);
 			}
 
 			if (color != null) {
@@ -169,39 +168,23 @@ public class ConditionalItem {
 					return;
 				}
 
-				final int r = Integer.parseInt(color.substring(1, 3), 16);
-				final int g = Integer.parseInt(color.substring(3, 5), 16);
-				final int b = Integer.parseInt(color.substring(5, 7), 16);
-				builder.leatherArmorColor(Color.fromRGB(r, g, b));
+				((LeatherArmorMeta) meta).setColor(ColorUtil.hexToColor(materialString));
 			}
 
-			if (modelData != null) {
-				builder.modelData(modelData);
+			final PersistentDataContainer data = meta.getPersistentDataContainer();
+			data.set(Main.getPlugin().KEY_ACTIONS, PersistentDataType.LIST.strings(), actions);
+			data.set(Main.getPlugin().KEY_ACTIONS_LEFT, PersistentDataType.LIST.strings(), leftClickActions);
+			data.set(Main.getPlugin().KEY_ACTIONS_RIGHT, PersistentDataType.LIST.strings(), rightClickActions);
+
+			if (cooldownTime > 0) {
+				data.set(Main.getPlugin().KEY_COOLDOWN_TIME, PersistentDataType.INTEGER, cooldownTime);
+				data.set(Main.getPlugin().KEY_COOLDOWN_ID, PersistentDataType.STRING, cooldownId);
+				data.set(Main.getPlugin().KEY_COOLDOWN_ACTIONS, PersistentDataType.LIST.strings(), cooldownActions);
+
 			}
 
-			if (nbtJson != null) {
-				try {
-					final ReadableNBT nbtToAdd = NBT.parseNBT(nbtJson);
-					builder.editNbt(nbt -> nbt.mergeCompound(nbtToAdd));
-				} catch (final NbtApiException e) {
-					player.sendMessage("Skipped adding custom NBT to an item because of an error, please see the console for more info.");
-					e.printStackTrace();
-				}
-			}
-
-			builder.editNbt(nbt -> {
-				nbt.getStringList("SSXActions").addAll(actions);
-				nbt.getStringList("SSXActionsLeft").addAll(leftClickActions);
-				nbt.getStringList("SSXActionsRight").addAll(rightClickActions);
-
-				if (cooldownTime > 0) {
-					nbt.setInteger("SSXCooldownTime", cooldownTime);
-					nbt.setString("SSXCooldownId", cooldownId);
-					nbt.getStringList("SSXCooldownActions").addAll(cooldownActions);
-				}
-			});
-
-			consumer.accept(builder.create());
+			item.setItemMeta(meta);
+			consumer.accept(item);
 		});
 	}
 
@@ -224,23 +207,24 @@ public class ConditionalItem {
 			return false;
 		}
 
-		final ReadableNBT nbt = NBT.readNbt(item);
+		final PersistentDataContainer data = item.getItemMeta().getPersistentDataContainer();
 
-		final ReadableNBTList<String> actions = nbt.getStringList("SSXActions");
-		final ReadableNBTList<String> leftActions = nbt.getStringList("SSXActionsLeft");
-		final ReadableNBTList<String> rightActions = nbt.getStringList("SSXActionsRight");
-		if (nbt.hasTag("SSXCooldownTime") &&
+		final List<String> actions = data.get(Main.getPlugin().KEY_ACTIONS, PersistentDataType.LIST.strings());
+		final List<String> leftActions = data.get(Main.getPlugin().KEY_ACTIONS_LEFT, PersistentDataType.LIST.strings());
+		final List<String> rightActions = data.get(Main.getPlugin().KEY_ACTIONS_RIGHT, PersistentDataType.LIST.strings());
+		final int cooldownTime = data.getOrDefault(Main.getPlugin().KEY_COOLDOWN_TIME, PersistentDataType.INTEGER, 0);
+
+		if (cooldownTime > 0 &&
 				( // Only apply cooldown if an action is about to be performed
 						!actions.isEmpty() ||
 								isRightClick && !rightActions.isEmpty() ||
 								isLeftClick && !leftActions.isEmpty()
 				)
 		) {
-			final int cooldownTime = nbt.getInteger("SSXCooldownTime");
-			final String cooldownId = nbt.getString("SSXCooldownId");
+			final String cooldownId = data.get(Main.getPlugin().KEY_COOLDOWN_ID, PersistentDataType.STRING);
 			if (Cooldown.getCooldown(cooldownId) > 0) {
-				final ReadableNBTList<String> cooldownActions = nbt.getStringList("SSXCooldownActions");
-				return Action.runActions(player, cooldownActions.toListCopy());
+				final List<String> cooldownActions = data.get(Main.getPlugin().KEY_COOLDOWN_ACTIONS, PersistentDataType.LIST.strings());
+				return Action.runActions(player, cooldownActions);
 			} else {
 				Cooldown.addCooldown(cooldownId, cooldownTime);
 			}
@@ -248,12 +232,12 @@ public class ConditionalItem {
 
 		boolean close = false;
 		if (actions != null) {
-			close = Action.runActions(player, actions.toListCopy());
+			close = Action.runActions(player, actions);
 		}
 		if (isRightClick && rightActions != null) {
-			close |= Action.runActions(player, rightActions.toListCopy());
+			close |= Action.runActions(player, rightActions);
 		} else if (isLeftClick && leftActions != null) {
-			close |= Action.runActions(player, leftActions.toListCopy());
+			close |= Action.runActions(player, leftActions);
 		}
 		return close;
 

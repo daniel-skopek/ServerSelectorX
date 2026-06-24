@@ -2,6 +2,8 @@ package nl.rslot.ssx.conditional.condition;
 
 import java.util.Map;
 
+import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
@@ -22,14 +24,14 @@ public class EffectCondition extends Condition {
 		}
 
 		final String effectTypeStr = (String) options.get("effect-type");
-		final PotionEffectType effectType = PotionEffectType.getByName(effectTypeStr);
-		if (effectType == null) {
+		final PotionEffectType effect = Registry.EFFECT.get(NamespacedKey.fromString(effectTypeStr));
+		if (effect == null) {
 			Main.getPlugin().getLogger().warning(
 					String.format("Skipped effect condition for %s, effect type %s is invalid", player.getName(), effectTypeStr));
 			return false;
 		}
 
-		final PotionEffect activeEffect = player.getPotionEffect(effectType);
+		final PotionEffect activeEffect = player.getPotionEffect(effect);
 
 		if (activeEffect == null) {
 			return false;

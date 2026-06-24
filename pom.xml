@@ -48,10 +48,6 @@
 							<shadedPattern>nl.rslot.ssx.lib.bstats</shadedPattern>
 						</relocation>
 						<relocation>
-							<pattern>de.tr7zw.changeme.nbtapi</pattern>
-							<shadedPattern>nl.rslot.ssx.lib.nbtapi</shadedPattern>
-						</relocation>
-						<relocation>
 							<pattern>org.intellij.lang.annotations</pattern>
 							<shadedPattern>nl.rslot.ssx.lib.intellij-annotations</shadedPattern>
 						</relocation>
@@ -63,23 +59,11 @@
 							<pattern>net.kyori</pattern>
 							<shadedPattern>nl.rslot.ssx.lib.kyori</shadedPattern>
 						</relocation>
-						<relocation>
-							<pattern>xyz.derkades.derkutils</pattern>
-							<shadedPattern>nl.rslot.ssx.lib.derkutils</shadedPattern>
-						</relocation>
-						<relocation>
-							<pattern>org.checkerframework</pattern>
-							<shadedPattern>nl.rslot.ssx.lib.checkerframework</shadedPattern>
-						</relocation>
 					</relocations>
 
 					<filters>
 						<filter>
 							<artifact>*:*</artifact>
-							<excludes>
-								<exclude>META-INF/</exclude>
-								<exclude>LICENSE</exclude>
-							</excludes>
 						</filter>
 					</filters>
 				</configuration>
@@ -101,14 +85,8 @@
 		<dependency>
 			<groupId>org.spigotmc</groupId>
 			<artifactId>spigot-api</artifactId>
-			<version>1.13.2-R0.1-SNAPSHOT</version>
+			<version>26.2-R0.1-SNAPSHOT</version>
 			<scope>provided</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>xyz.derkades</groupId>
-			<artifactId>Derkutils</artifactId>
-			<version>spigot-1.13</version>
 		</dependency>
 
 		<dependency>
@@ -122,12 +100,6 @@
 			<artifactId>placeholderapi</artifactId>
 			<version>2.12.2</version>
 			<scope>provided</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>de.tr7zw</groupId>
-			<artifactId>item-nbt-api</artifactId>
-			<version>2.15.7</version>
 		</dependency>
 
 		<dependency>
@@ -158,6 +130,10 @@
 				<exclusion>
 					<groupId>net.kyori</groupId>
 					<artifactId>adventure-text-serializer-gson-legacy-impl</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>net.kyori</groupId>
+					<artifactId>adventure-nbt</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>

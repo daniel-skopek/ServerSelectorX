@@ -1,8 +1,6 @@
 title: 'Server Selector'
 rows: 1
 
-# sound: ITEM_ARMOR_EQUIP_GENERIC
-
 # How often the menu should be refreshed.
 # Settings this too low can have a performance impact.
 # update-interval: 100
@@ -13,9 +11,9 @@ menu:
   0:
     actions:
      - 'message:Toggled speed effect'
-     - 'toggleeffect:SPEED:2'
+     - 'toggleeffect:speed:2'
      - 'close'
-    material: FEATHER
+    material: minecraft:feather
     title: 'Toggle speed'
     lore:
      - '&7Click to toggle speed effect'
@@ -25,7 +23,7 @@ menu:
     actions:
      - 'server:smp'
      - 'close'
-    material: GRASS_BLOCK
+    material: grass_block
     title: 'SMP server'
     lore:
      - '&7Click to go to our SMP server'
@@ -35,7 +33,7 @@ menu:
     actions:
       - 'message:&cSorry, you cannot connect to this server at the moment.'
     server-name: kitpvp
-    material: WOODEN_SWORD
+    material: wooden_sword
     hide-flags: true # hide attack damage info
     title: '&cKitPvP Server'
     lore:
@@ -48,7 +46,7 @@ menu:
       - type: server-online
         actions:
           - 'server:kitpvp'
-        material: IRON_SWORD
+        material: iron_sword
         enchanted: true
         title: '&aKitPvP Server'
         lore:
@@ -60,7 +58,7 @@ menu:
     actions:
      - 'message:&8This is a message'
      - 'close'
-    material: 'head:self'
+    material: 'head:uuid:4803d8c9-b585-4248-8d4e-c3cf68e7eab1'
     title: '&aThis is you!'
     lore:
      - '&6Click this item to receive a message'
@@ -71,7 +69,7 @@ menu:
     actions:
       - 'consolecommand:give {player} dirt 64'
       - 'playercommand:say I am too lazy to get dirt myself'
-    material: DIRT
+    material: dirt
     title: '&cFree dirt'
 
     conditional:
@@ -89,7 +87,7 @@ menu:
     actions:
       - 'message:&cSorry, you cannot connect to this server at the moment.'
       - 'close'
-    material: DIAMOND
+    material: diamond
     title: '&cVIP Server'
     lore:
       - '&7Unfortunately, the server is offline.'
@@ -106,7 +104,7 @@ menu:
       - type: server-online
         actions:
           - 'server:vip'
-        material: DIAMOND
+        material: diamond
         title: '&6VIP Server'
         lore:
           - 'You are VIP, join the server!'
@@ -114,5 +112,5 @@ menu:
 
 
   fill:
-    material: GRAY_STAINED_GLASS_PANE
+    material: gray_stained_glass_pane
     title: ' '

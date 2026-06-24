@@ -6,7 +6,7 @@ import java.util.Objects;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.entity.Player;
 
-import xyz.derkades.derkutils.bukkit.PlaceholderUtil;
+import nl.rslot.ssx.util.PlaceholderUtil;
 
 public class PapiCondition extends Condition {
 

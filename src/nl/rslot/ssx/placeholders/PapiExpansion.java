@@ -1,7 +1,6 @@
 package nl.rslot.ssx.placeholders;
 
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
 
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import nl.rslot.ssx.Main;
@@ -45,17 +44,17 @@ public class PapiExpansion extends PlaceholderExpansion {
 	}
 
 	@Override
-	public @NotNull String getAuthor() {
+	public String getAuthor() {
 		return String.join(", ", Main.getPlugin().getDescription().getAuthors());
 	}
 
 	@Override
-	public @NotNull String getIdentifier() {
+	public String getIdentifier() {
 		return "ssx";
 	}
 
 	@Override
-	public @NotNull String getVersion() {
+	public String getVersion() {
 		return Main.getPlugin().getDescription().getVersion();
 	}
 

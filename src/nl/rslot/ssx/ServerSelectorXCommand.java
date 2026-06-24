@@ -9,7 +9,6 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
 
 import net.md_5.bungee.api.ChatColor;
 import nl.rslot.ssx.placeholders.GlobalPlaceholder;
@@ -20,7 +19,7 @@ import nl.rslot.ssx.placeholders.Server;
 public class ServerSelectorXCommand implements CommandExecutor {
 
 	@Override
-	public boolean onCommand(final CommandSender sender, final @NotNull Command command, final @NotNull String label, final String[] args){
+	public boolean onCommand(final CommandSender sender, final Command command, final String label, final String[] args){
 		if (!sender.hasPermission("ssx.admin")) {
 			sender.sendMessage(ChatColor.RED + "You need the permission 'ssx.admin' to execute this command.");
 			return true;
