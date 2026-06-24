@@ -11,6 +11,7 @@ import org.bukkit.Material;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -121,6 +122,19 @@ public class Main extends JavaPlugin {
 		return placeholderReceiver;
 	}
 
+	private static ItemStack getHeadItemStack() {
+		try {
+			// below 1.13
+			final Material skull = Material.valueOf("SKULL_ITEM");
+			final ItemStack item = new ItemStack(skull);
+			item.setDurability((short) 3);
+			return item;
+		} catch (final IllegalArgumentException ignored) {
+			// 1.13+
+			return new ItemStack(Material.valueOf("PLAYER_HEAD"));
+		}
+	}
+
     public static void getItemBuilderFromMaterialString(final Player player, @Nullable String materialString, final Consumer<NbtItemBuilder> builderConsumer) throws InvalidConfigurationException {
 		if (materialString == null || materialString.isEmpty()) {
 			return;
@@ -137,7 +151,7 @@ public class Main extends JavaPlugin {
 					headValue = "uuid:" + player.getUniqueId();
 				} else {
 					// Bypass head system, just return player's own head. No need to get a texture, because the server caches it for online players
-					builderConsumer.accept(new NbtItemBuilder(Material.SKULL_ITEM).damage(3).skullOwner(player.getName()));
+					builderConsumer.accept(new NbtItemBuilder(getHeadItemStack()).skullOwner(player.getName()));
 					return;
 				}
 			}
@@ -151,9 +165,9 @@ public class Main extends JavaPlugin {
 				}
 
 				if (headTexture != null) {
-					builderConsumer.accept(new NbtItemBuilder(Material.SKULL_ITEM).damage(3).skullTexture(headTexture));
+					builderConsumer.accept(new NbtItemBuilder(getHeadItemStack()).skullTexture(headTexture));
 				} else {
-					builderConsumer.accept(new NbtItemBuilder(Material.SKULL_ITEM).damage(3));
+					builderConsumer.accept(new NbtItemBuilder(getHeadItemStack()));
 				}
 			});
 			return;

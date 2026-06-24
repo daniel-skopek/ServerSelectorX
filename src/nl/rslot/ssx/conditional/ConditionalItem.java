@@ -117,6 +117,7 @@ public class ConditionalItem {
 			final List<String> cooldownActions = (List<String>) matchedSection.getOrDefault("cooldown-actions", Collections.emptyList());
 			final @Nullable String serverName = (String) matchedSection.get("server-name");
 			final @Nullable String color = (String) matchedSection.get("color");
+			final @Nullable Integer modelData = (Integer) matchedSection.getOrDefault("model-data", null);
 
 			final @Nullable Server server = serverName != null ? Main.placeholderReceiver().getServer(serverName) : null;
 
@@ -178,6 +179,10 @@ public class ConditionalItem {
 				final int b = Integer.parseInt(color.substring(5, 7), 16);
 				builder.leatherArmorColor(Color.fromRGB(r, g, b));
 			}
+
+			if (modelData != null) {
+                builder.modelData(modelData);
+            }
 
 			if (nbtJson != null) {
 				try {

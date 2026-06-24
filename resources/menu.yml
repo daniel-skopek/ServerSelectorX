@@ -25,7 +25,7 @@ menu:
     actions:
      - 'server:smp'
      - 'close'
-    material: GRASS
+    material: GRASS|GRASS_BLOCK # multiple item names are specified so the default config works for all server versions
     title: 'SMP server'
     lore:
      - '&7Click to go to our SMP server'
@@ -35,7 +35,7 @@ menu:
     actions:
       - 'message:&cSorry, you cannot connect to this server at the moment.'
     server-name: kitpvp
-    material: WOOD_SWORD
+    material: WOOD_SWORD|WOODEN_SWORD # multiple item names are specified so the default config works for all server versions
     hide-flags: true # hide attack damage info
     title: '&cKitPvP Server'
     lore:
@@ -114,6 +114,6 @@ menu:
 
 
   fill:
-    material: STAINED_GLASS_PANE
-    data: 8
+    material: STAINED_GLASS_PANE|GRAY_STAINED_GLASS_PANE # multiple item names are specified so the default config works for all server versions
+    data: 8 # ignored in 1.13+
     title: ' '
