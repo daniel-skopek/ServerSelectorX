@@ -136,8 +136,9 @@ public class Main extends JavaPlugin {
 		final ItemType item;
 		try {
 			// convert to lowercase for best-effort Material compatibility
-			item = Registry.ITEM.getOrThrow(NamespacedKey.fromString(materialString.toLowerCase()));
-		} catch (IllegalArgumentException | NullPointerException e) {
+			item = Registry.ITEM.get(NamespacedKey.fromString(materialString.toLowerCase()));
+			Objects.nonNull(item); // NamespacedKey.fromString also raises NPE
+		} catch (final NullPointerException e) {
 			player.sendMessage("Invalid item name '" + materialString + "'");
 			player.sendMessage("https://github.com/ServerSelectorX/ServerSelectorX/wiki/Item-names");
 			return;
