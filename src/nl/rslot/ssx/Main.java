@@ -83,7 +83,6 @@ public class Main extends JavaPlugin {
 
 		adventure = BukkitAudiences.create(this);
 
-		new Stats();
 		new ItemMoveDropCancelListener();
 		this.hotbarItemManager.enable();
 
