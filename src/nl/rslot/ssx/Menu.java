@@ -3,14 +3,12 @@ package nl.rslot.ssx;
 import java.util.List;
 import java.util.Objects;
 
-import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.Nullable;
 
 import nl.rslot.ssx.actions.Action;
@@ -62,23 +60,18 @@ public class Menu extends IconMenu {
 
 		final int updateInterval = config.getInt("update-interval", 100);
 
-		new BukkitRunnable() {
-			@Override
-			public void run() {
-				if (Menu.this.closed || // menu has been closed
-						Bukkit.getPlayer(player.getName()) == null // player is offline
-						) {
-					this.cancel();
-					return;
-				}
-
-				Menu.this.addItems();
-
-				if (config.getBoolean("disable-updates", false)) {
-					this.cancel();
-				}
+		player.getScheduler().runAtFixedRate(Main.getPlugin(), scheduledTask -> {
+			if (Menu.this.closed) { // menu has been closed
+				scheduledTask.cancel();
+				return;
 			}
-		}.runTaskTimer(Main.getPlugin(), 0, updateInterval);
+
+			Menu.this.addItems();
+
+			if (config.getBoolean("disable-updates", false)) {
+				scheduledTask.cancel();
+			}
+		}, null, 0, updateInterval);
 	}
 
 	private void addItems() {

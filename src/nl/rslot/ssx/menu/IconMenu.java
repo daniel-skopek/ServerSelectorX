@@ -3,7 +3,6 @@ package nl.rslot.ssx.menu;
 
 import java.util.Objects;
 import java.util.UUID;
-import java.util.function.Consumer;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -18,7 +17,6 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class IconMenu implements Listener {
@@ -42,20 +40,8 @@ public abstract class IconMenu implements Listener {
 					final String name,
 					final int rows,
 					final Player player) {
-		this(name, rows, player,
-				t -> t.runTaskTimer(plugin, 1, 1),
-				l -> Bukkit.getServer().getPluginManager().registerEvents(l, plugin));
-	}
-
-	public IconMenu(final String name,
-					final int rows,
-					final Player player,
-					final Consumer<BukkitRunnable> timerRegistrar,
-					final Consumer<Listener> listenerRegistrar) {
 		Objects.requireNonNull(name, "Name is null");
 		Objects.requireNonNull(player, "Player is null");
-		Objects.requireNonNull(listenerRegistrar, "Timer registrar is null");
-		Objects.requireNonNull(listenerRegistrar, "Listener registrar is null");
 
 		this.size = rows * 9;
 		this.name = name;
@@ -69,39 +55,40 @@ public abstract class IconMenu implements Listener {
 		}
 		this.view = view;
 
-		listenerRegistrar.accept(this);
-		timerRegistrar.accept(new BukkitRunnable() {
+		Bukkit.getServer().getPluginManager().registerEvents(this, plugin);
 
-			@Override
-			public void run() {
-				// Unregister listeners for the menu if the player has opened a different
-				// menu, which means that this menu must be closed.
-				final Player player = Bukkit.getPlayer(IconMenu.this.uuid);
-				if (player == null) {
-					// player went offline
-					if (!IconMenu.this.closeEventCalled) {
-						IconMenu.this.closeEventCalled = true;
-						IconMenu.this.onClose(new MenuCloseEvent(Bukkit.getOfflinePlayer(IconMenu.this.uuid), CloseReason.PLAYER_QUIT));
-					}
-				} else if (!player.getOpenInventory().getTopInventory().equals(IconMenu.this.inventory)) {
-					// player closed inventory
-					if (!IconMenu.this.closeEventCalled) {
-						IconMenu.this.closeEventCalled = true;
-						if (IconMenu.this.closeReason == null) {
-							IconMenu.this.closeReason = CloseReason.PLAYER_CLOSED;
-						}
-						IconMenu.this.onClose(new MenuCloseEvent(player, IconMenu.this.closeReason));
-					}
-				} else {
-					// menu is still open
-					return;
-				}
-
-				HandlerList.unregisterAll(IconMenu.this);
-				this.cancel();
+		player.getScheduler().runAtFixedRate(plugin, scheduledTask -> {
+			// Unregister listeners for the menu if the player has opened a different
+			// menu, which means that this menu must be closed.
+			final Player online = Bukkit.getPlayer(IconMenu.this.uuid);
+			if (online != null && online.getOpenInventory().getTopInventory().equals(IconMenu.this.inventory)) {
+				// menu is still open
+				return;
 			}
 
-		});
+			if (!IconMenu.this.closeEventCalled) {
+				IconMenu.this.closeEventCalled = true;
+				if (online == null) {
+					IconMenu.this.onClose(new MenuCloseEvent(Bukkit.getOfflinePlayer(IconMenu.this.uuid), CloseReason.PLAYER_QUIT));
+				} else {
+					if (IconMenu.this.closeReason == null) {
+						IconMenu.this.closeReason = CloseReason.PLAYER_CLOSED;
+					}
+					IconMenu.this.onClose(new MenuCloseEvent(online, IconMenu.this.closeReason));
+				}
+			}
+
+			HandlerList.unregisterAll(IconMenu.this);
+			scheduledTask.cancel();
+		}, () -> {
+			// Retired: the player went offline (or the plugin was disabled).
+			if (!plugin.isEnabled() || IconMenu.this.closeEventCalled) {
+				return;
+			}
+			IconMenu.this.closeEventCalled = true;
+			HandlerList.unregisterAll(IconMenu.this);
+			IconMenu.this.onClose(new MenuCloseEvent(Bukkit.getOfflinePlayer(IconMenu.this.uuid), CloseReason.PLAYER_QUIT));
+		}, 1, 1);
 	}
 
 	/**

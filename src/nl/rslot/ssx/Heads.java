@@ -95,7 +95,7 @@ public class Heads {
 
 		final CompletableFuture<@Nullable String> future = this.handlers.get(type).getHeadTexture(value);
 
-		Futures.whenCompleteOnMainThread(Main.getPlugin(), future, (headTexture, exception) -> {
+		Futures.whenCompleteOnMainThread(player, future, (headTexture, exception) -> {
 			if (exception != null) {
 				exception.printStackTrace();
 				return;
@@ -221,7 +221,7 @@ public class Heads {
 			}
 
 			final CompletableFuture<String> future = new CompletableFuture<>();
-			Bukkit.getScheduler().runTaskAsynchronously(this.plugin, () -> {
+			Bukkit.getAsyncScheduler().runNow(this.plugin, scheduledTask -> {
 				final UUID uuid = UUID.fromString(name);
 				Main.getPlugin().getLogger().info("Getting texture value for " + uuid + " from Mojang API");
 

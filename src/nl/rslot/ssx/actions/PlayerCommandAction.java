@@ -15,8 +15,9 @@ public class PlayerCommandAction extends Action {
 	@Override
 	public boolean apply(final Player player, final String value) {
 		//Send command 2 ticks later to let the GUI close first (for commands that open a GUI)
-		Bukkit.getScheduler().scheduleSyncDelayedTask(Main.getPlugin(),
-				() -> Bukkit.dispatchCommand(player, PlaceholderUtil.parsePapiPlaceholders(player, value)),
+		player.getScheduler().runDelayed(Main.getPlugin(),
+				scheduledTask -> Bukkit.dispatchCommand(player, PlaceholderUtil.parsePapiPlaceholders(player, value)),
+				null,
 				2);
 		return false;
 	}

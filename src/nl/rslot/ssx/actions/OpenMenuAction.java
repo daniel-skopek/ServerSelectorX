@@ -26,14 +26,14 @@ public class OpenMenuAction extends Action {
 
 		final UUID uuid = player.getUniqueId();
 
-		Bukkit.getScheduler().runTaskLater(Main.getPlugin(), () -> {
+		player.getScheduler().runDelayed(Main.getPlugin(), scheduledTask -> {
 			final Player player2 = Bukkit.getPlayer(uuid);
 			if (player2 == null) {
 				Main.getPlugin().getLogger().warning("Player " + uuid + " left while running openmenu action");
 				return;
 			}
 			new Menu(player, menu, value);
-		}, 0);
+		}, null, 0);
 		return false;
 	}
 

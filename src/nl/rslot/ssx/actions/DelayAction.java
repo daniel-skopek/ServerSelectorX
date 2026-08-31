@@ -1,6 +1,5 @@
 package nl.rslot.ssx.actions;
 
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import nl.rslot.ssx.Main;
@@ -24,7 +23,7 @@ public class DelayAction extends Action {
 			return false;
 		}
 
-		Bukkit.getScheduler().runTaskLater(Main.getPlugin(), () -> Action.runAction(player, actionString), delay);
+		player.getScheduler().runDelayed(Main.getPlugin(), scheduledTask -> Action.runAction(player, actionString), null, delay);
 		return false;
 	}
 

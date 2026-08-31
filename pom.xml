@@ -34,61 +34,14 @@
 				</configuration>
 			</plugin>
 
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-shade-plugin</artifactId>
-				<version>3.6.2</version>
-				<configuration>
-					<createDependencyReducedPom>false</createDependencyReducedPom>
-					<minimizeJar>true</minimizeJar>
-
-					<relocations>
-						<relocation>
-							<pattern>org.bstats</pattern>
-							<shadedPattern>nl.rslot.ssx.lib.bstats</shadedPattern>
-						</relocation>
-						<relocation>
-							<pattern>org.intellij.lang.annotations</pattern>
-							<shadedPattern>nl.rslot.ssx.lib.intellij-annotations</shadedPattern>
-						</relocation>
-						<relocation>
-							<pattern>org.jetbrains.annotations</pattern>
-							<shadedPattern>nl.rslot.ssx.lib.jetbrains-annotations</shadedPattern>
-						</relocation>
-						<relocation>
-							<pattern>net.kyori</pattern>
-							<shadedPattern>nl.rslot.ssx.lib.kyori</shadedPattern>
-						</relocation>
-					</relocations>
-
-					<filters>
-						<filter>
-							<artifact>*:*</artifact>
-							<excludes>
-                                <exclude>META-INF/MANIFEST.MF</exclude>
-                                <exclude>META-INF/versions/9/module-info.class</exclude>
-                            </excludes>
-						</filter>
-					</filters>
-				</configuration>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>shade</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-
 		</plugins>
 	</build>
 
 	<dependencies>
 
 		<dependency>
-			<groupId>org.spigotmc</groupId>
-			<artifactId>spigot-api</artifactId>
+			<groupId>io.papermc.paper</groupId>
+			<artifactId>paper-api</artifactId>
 			<version>1.20.6-R0.1-SNAPSHOT</version>
 			<scope>provided</scope>
 		</dependency>
@@ -97,6 +50,7 @@
 			<groupId>org.bstats</groupId>
 			<artifactId>bstats-bukkit</artifactId>
 			<version>3.2.1</version>
+			<scope>provided</scope>
 		</dependency>
 
 		<dependency>
@@ -110,18 +64,21 @@
 			<groupId>net.kyori</groupId>
 			<artifactId>adventure-api</artifactId>
 			<version>${adventureVersion}</version>
+			<scope>provided</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>net.kyori</groupId>
 			<artifactId>adventure-text-minimessage</artifactId>
 			<version>${adventureVersion}</version>
+			<scope>provided</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>net.kyori</groupId>
 			<artifactId>adventure-platform-bukkit</artifactId>
 			<version>4.4.1</version>
+			<scope>provided</scope>
 			<exclusions>
 				<exclusion>
 					<groupId>net.kyori</groupId>
@@ -145,6 +102,11 @@
 	</dependencies>
 
 	<repositories>
+
+		<repository>
+			<id>papermc</id>
+			<url>https://repo.papermc.io/repository/maven-public/</url>
+		</repository>
 
 		<repository>
 			<id>spigot-repo</id>

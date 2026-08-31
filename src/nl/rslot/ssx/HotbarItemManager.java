@@ -115,7 +115,7 @@ public class HotbarItemManager {
 	 */
 	public void updateSsxItems() {
 		for (final Player player : Bukkit.getOnlinePlayers()) {
-			this.updateSsxItems(player);
+			player.getScheduler().run(Main.getPlugin(), scheduledTask -> this.updateSsxItems(player), null);
 		}
 	}
 
@@ -202,7 +202,7 @@ public class HotbarItemManager {
 		@EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
 		public void onClear(final PlayerCommandPreprocessEvent event) {
 			if (event.getMessage().equals("/clear") && event.getPlayer().hasPermission("minecraft.command.clear")) {
-				Bukkit.getScheduler().runTaskLater(Main.getPlugin(), () -> HotbarItemManager.this.updateSsxItems(event.getPlayer()), 1);
+				event.getPlayer().getScheduler().runDelayed(Main.getPlugin(), scheduledTask -> HotbarItemManager.this.updateSsxItems(event.getPlayer()), null, 1);
 			}
 		}
 

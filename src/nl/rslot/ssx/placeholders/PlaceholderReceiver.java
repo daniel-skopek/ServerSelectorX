@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -34,7 +35,7 @@ public class PlaceholderReceiver {
     private final String lobbyId;
 
     public PlaceholderReceiver() {
-        Bukkit.getScheduler().runTaskTimerAsynchronously(Main.getPlugin(), this::updatePlaceholders, 0, 5*20);
+        Bukkit.getAsyncScheduler().runAtFixedRate(Main.getPlugin(), scheduledTask -> this.updatePlaceholders(), 0, 5, TimeUnit.SECONDS);
         this.lobbyId = UUID.randomUUID().toString();
 
     }

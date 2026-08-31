@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import nl.rslot.ssx.Main;
@@ -110,9 +109,10 @@ public abstract class Action {
 		// For example, for the 'open-menu', 'has-effect', or 'has-hidden-others' conditions.
 		// Menus are opened in the next tick. Items need to be refreshed after the menu is opened,
 		// so updateSsxItems() should be in a scheduled task as well.
-		Bukkit.getScheduler().runTaskLater(
+		player.getScheduler().runDelayed(
 				Main.getPlugin(),
-				() -> Main.getPlugin().getHotbarItemManager().updateSsxItems(player),
+				scheduledTask -> Main.getPlugin().getHotbarItemManager().updateSsxItems(player),
+				null,
 				0);
 
 		return close;
