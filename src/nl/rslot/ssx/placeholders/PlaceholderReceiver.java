@@ -30,7 +30,7 @@ public class PlaceholderReceiver {
     private Map<String, Server> servers = Collections.emptyMap();
     private String status;
     private long lastSuccess = 0;
-    private List<String> placeholderServers;
+    private List<String> placeholderServers = Collections.emptyList();
     private String networkId;
     private final String lobbyId;
 
